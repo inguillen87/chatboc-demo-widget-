@@ -532,6 +532,25 @@
   <!-- WIDGET SCRIPT -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  // Ensure third-party scripts have the helpers they expect
+  if (typeof window._t !== 'function') {
+    window._t = (key, vars = {}) =>
+      Object.keys(vars).reduce((acc, current) => acc.replace(`{${current}}`, vars[current]), key);
+  }
+
+  try {
+    const tronDescriptor = Object.getOwnPropertyDescriptor(window, 'tronLink');
+    if (!tronDescriptor || tronDescriptor.configurable) {
+      Object.defineProperty(window, 'tronLink', {
+        value: tronDescriptor?.value ?? null,
+        writable: true,
+        configurable: true,
+      });
+    }
+  } catch (error) {
+    console.warn('No se pudo inicializar tronLink de manera compatible', error);
+  }
+
   window.__FALLBACK_LOGO =
     'data:image/svg+xml;utf8,' +
     encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">
@@ -590,6 +609,7 @@ document.addEventListener('DOMContentLoaded', function () {
     s.src = 'https://www.chatboc.ar/widget.js?v=' + Date.now();
     s.async = true;
     s.setAttribute('data-owner-token', OWNER_TOKEN);
+    s.setAttribute('data-api-base', 'https://www.chatboc.ar');
     s.setAttribute('data-default-open', 'false');
     s.setAttribute('data-width', '460px');
     s.setAttribute('data-height', '680px');
