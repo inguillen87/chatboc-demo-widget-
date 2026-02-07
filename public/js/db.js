@@ -1,15 +1,44 @@
 // --- LOCAL STORAGE & DATA LAYER ---
-const DB_KEY = 'integraltek_casino_v7';
+const DB_KEY = 'integraltek_casino_v9';
 
 // Initial Data Structure
 const defaultData = {
     config: { region: 'es', theme: 'light' },
-    user: { step: 'MENU', tempLogin: null, kycEmail: null, withdrawAmount: 0 },
+    session: {
+        phoneNumber: "5491155556666",
+        userId: null
+    },
+    flowState: {
+        step: 'MENU',
+        tempData: {}
+    },
     players: [
-        { id: 101, name: "Matias G.", email: "matias@gmail.com", pin: "1234", balance: 45000, status: "VERIFIED", history: { in: 150000, out: 105000 } },
-        { id: 102, name: "Carla R.", email: "carla@hotmail.com", pin: "0000", balance: 1200, status: "PENDING_KYC", history: { in: 1200, out: 0 } },
-        { id: 103, name: "Lucas P.", email: "lucas@gmail.com", pin: "9999", balance: 0, status: "PENDING_DEPOSIT", history: { in: 0, out: 0 } },
-        { id: 104, name: "Pedro S.", email: "pedro@yahoo.com", pin: "5555", balance: 15000, status: "PENDING_WITHDRAWAL", history: { in: 30000, out: 15000 } }
+        {
+            id: 101,
+            firstName: "Matias",
+            lastName: "G.",
+            username: "matiasg",
+            phone: "5491112345678",
+            email: "matias@gmail.com",
+            pin: "1234",
+            balance: 45000,
+            status: "VERIFIED",
+            history: { in: 150000, out: 105000 },
+            kyc: { dni: true, selfie: true }
+        },
+        {
+            id: 102,
+            firstName: "Carla",
+            lastName: "R.",
+            username: "carlar88",
+            phone: "5491187654321",
+            email: "carla@hotmail.com",
+            pin: "0000",
+            balance: 1200,
+            status: "PENDING_KYC",
+            history: { in: 1200, out: 0 },
+            kyc: { dni: false, selfie: false }
+        }
     ],
     chat: [],
     logs: []
@@ -18,93 +47,102 @@ const defaultData = {
 // Region Configuration
 const regions = {
     es: {
-        flag: "🇪🇸", currency: "$", locale: "es-AR", // Generic ES (Argentina Locale for Format)
-        nav_chat: "Consola Chat", nav_crm: "CRM Jugadores", nav_dash: "Dashboard",
-        status_online: "SISTEMA ACTIVO", title_agent: "Agente Operativo AI", ggr_label: "Profit Neto", reset_btn: "Resetear Sistema",
-        crm_title: "Gestión de Jugadores", crm_desc: "Control centralizado ES.",
-        th_player: "JUGADOR", th_contact: "DATOS", th_status: "ESTADO", th_balance: "BALANCE", th_actions: "ACCIONES",
-        kpi_in: "Ingresos", kpi_out: "Retiros", chart_fin: "Flujo Financiero", chart_kyc: "Nuevos Registros",
-        drawer_title: "Adjuntar Documentación", lbl_doc: "DNI / ID", lbl_receipt: "Comprobante", btn_cancel: "CANCELAR",
-        btn_pdf: "Reporte PDF",
+        flag: "🇪🇸", currency: "$", locale: "es-AR",
         bot: {
             welcome: "👋 ¡Hola! Soy tu asistente de **Casino**. ¿Qué necesitas?",
-            menu_recharge: "💰 Recargar", menu_balance: "📈 Saldo", menu_kyc: "🪪 Registro", menu_withdraw: "📤 Retirar",
+            welcome_known: "👋 ¡Hola **{name}**! ¿En qué te ayudo hoy?",
+            menu_recharge: "💰 Cargar", menu_balance: "📈 Saldo", menu_kyc: "🪪 Registro", menu_withdraw: "📤 Retirar",
             menu_faq: "❓ Ayuda", menu_report: "🚨 Reporte", menu_agent: "👤 Operador", menu_methods: "💳 Métodos",
-            ask_method: "📥 **Recarga**\n\nTransferí a la cuenta bancaria o billetera virtual.\n\nSubí tu comprobante.",
-            ask_email_bal: "🔒 **Seguridad**\n\nIngresá tu **Email** registrado.",
-            ask_pin: "🔑 Ingresá tu **PIN** de 4 dígitos.",
-            balance_show: "💰 **Saldo Disponible:**",
-            kyc_start: "📝 **Registro**\n\nNecesitamos validar tu **DNI** (Frente).",
-            kyc_selfie: "✅ **DNI OK**\n\nAhora una **Selfie** tuya.",
-            kyc_email: "✅ **Biometría OK**\n\nIndicame tu **Email**.",
-            kyc_pin: "🔐 **PIN**\n\nCreá un PIN de 4 dígitos.",
-            kyc_done: "🎉 **¡Cuenta Lista!**\n\nEsperando validación.",
-            withdraw_amount: "💸 **Retiro**\n\n¿Cuánto querés retirar? (Mín $500)",
-            withdraw_cbu: "🏦 Indicame tu **CBU / Alias**.",
-            withdraw_done: "⏳ **Procesando**\n\nTu retiro está en camino.",
-            error_pin: "❌ PIN incorrecto.",
-            error_email: "❌ Email no existe.",
-            fallback: "⚠️ No entendí. Usá el menú."
+
+            reg_start: "📝 **Nuevo Usuario**\n\nPor normativa, necesito tu **Nombre** real.",
+            reg_surname: "Perfecto. Ahora tu **Apellido**.",
+            reg_user: "Creá un **Nombre de Usuario** para la plataforma.",
+            reg_email: "📧 Ingresá tu **Email** personal.",
+            reg_pin: "🔒 Creá un **PIN de Seguridad** (4 dígitos).",
+            reg_kyc: "📷 Para activar la cuenta, subí una foto de tu **DNI**.",
+            reg_selfie: "🤳 Ahora una **Selfie** sosteniendo el DNI.",
+            reg_done: "🎉 **¡Registro Exitoso!**\n\nTu cuenta está siendo validada por el equipo.",
+
+            dep_amount: "💰 **Cargar Saldo**\n\n¿Qué monto vas a ingresar?\n\n🔥 **Promo:** > 5,000 obtenés **10% EXTRA**.",
+            dep_receipt: "🏦 **Transferencia**\n\nAlias: *casino.integraltek*\n\nSubí el **comprobante** para acreditarte.",
+            dep_wait: "⏳ **Procesando...**\n\nValidando comprobante con Vision IA...",
+            dep_done: "✅ **Solicitud Recibida**\n\nSe acreditará en breve tras la aprobación del CRM.",
+
+            with_amount: "💸 **Retiro de Fondos**\n\n¿Cuánto querés retirar?",
+            with_pin: "🔐 Ingresá tu **PIN** para confirmar.",
+            with_done: "⏳ **Procesando Retiro**\n\nEl dinero se enviará a tu cuenta bancaria asociada.",
+
+            err_amount: "⚠️ Monto inválido.",
+            err_pin: "❌ PIN Incorrecto.",
+            err_bal: "⚠️ Saldo insuficiente.",
+            fallback: "🤖 No entendí. Usá el menú.",
+            smart_fallback: "🤖 Entiendo que querés operar, pero soy una IA en entrenamiento. \n\nPodés escribir:\n🔹 *\"Quiero cargar saldo\"*\n🔹 *\"Necesito registrarme\"*\n🔹 *\"Retirar dinero\"*\n\nO usá el menú de abajo. 👇"
         }
     },
     us: {
         flag: "🇺🇸", currency: "$", locale: "en-US",
-        nav_chat: "Chat Console", nav_crm: "Player CRM", nav_dash: "Dashboard",
-        status_online: "SYSTEM ACTIVE", title_agent: "AI Operating Agent", ggr_label: "Net Profit", reset_btn: "Reset System",
-        crm_title: "Player Management", crm_desc: "Centralized control US.",
-        th_player: "PLAYER", th_contact: "DATA", th_status: "STATUS", th_balance: "BALANCE", th_actions: "ACTIONS",
-        kpi_in: "Cash-In", kpi_out: "Cash-Out", chart_fin: "Financial Flow", chart_kyc: "New Signups",
-        drawer_title: "Attach Documents", lbl_doc: "ID / License", lbl_receipt: "Receipt", btn_cancel: "CANCEL",
-        btn_pdf: "PDF Report",
         bot: {
-            welcome: "👋 Hi! I'm your **Casino US** assistant. How can I help?",
+            welcome: "👋 Hi! I'm your **Casino** assistant. How can I help?",
+            welcome_known: "👋 Hi **{name}**! How can I help you today?",
             menu_recharge: "💰 Deposit", menu_balance: "📈 Balance", menu_kyc: "🪪 Register", menu_withdraw: "📤 Withdraw",
             menu_faq: "❓ Help", menu_report: "🚨 Report", menu_agent: "👤 Agent", menu_methods: "💳 Methods",
-            ask_method: "📥 **Deposit**\n\nSend via CashApp/Venmo/Zelle.\n\nUpload the receipt.",
-            ask_email_bal: "🔒 **Security**\n\nEnter your registered **Email**.",
-            ask_pin: "🔑 Enter your 4-digit **PIN**.",
-            balance_show: "💰 **Balance (USD):**",
-            kyc_start: "📝 **Sign Up**\n\nPlease upload your **Driver's License** or **ID**.",
-            kyc_selfie: "✅ **ID OK**\n\nNow take a **Selfie**.",
-            kyc_email: "✅ **Biometrics OK**\n\nEnter your **Email**.",
-            kyc_pin: "🔐 **PIN**\n\nCreate a 4-digit security PIN.",
-            kyc_done: "🎉 **Account Ready!**\n\nWaiting for approval.",
-            withdraw_amount: "💸 **Withdraw**\n\nAmount to withdraw? (Min $50)",
-            withdraw_cbu: "🏦 Enter your **CashApp Tag** or **Zelle**.",
-            withdraw_done: "⏳ **Processing**\n\nWithdrawal initiated.",
-            error_pin: "❌ Wrong PIN.",
-            error_email: "❌ Email not found.",
-            fallback: "⚠️ I didn't understand. Use menu."
+
+            reg_start: "📝 **New User**\n\nI need your real **First Name** for compliance.",
+            reg_surname: "Great. Now your **Last Name**.",
+            reg_user: "Create a **Username** for the platform.",
+            reg_email: "📧 Enter your personal **Email**.",
+            reg_pin: "🔒 Create a **Security PIN** (4 digits).",
+            reg_kyc: "📷 To activate, please upload a photo of your **ID**.",
+            reg_selfie: "🤳 Now a **Selfie** holding your ID.",
+            reg_done: "🎉 **Registration Successful!**\n\nYour account is being validated.",
+
+            dep_amount: "💰 **Deposit Funds**\n\nEnter amount?\n\n🔥 **Promo:** > 5,000 get **10% EXTRA**.",
+            dep_receipt: "🏦 **Transfer**\n\nTag: *casino.integraltek*\n\nUpload the **receipt** to credit funds.",
+            dep_wait: "⏳ **Processing...**\n\nValidating receipt with Vision AI...",
+            dep_done: "✅ **Request Received**\n\nFunds will be credited shortly after CRM approval.",
+
+            with_amount: "💸 **Withdraw Funds**\n\nHow much to withdraw?",
+            with_pin: "🔐 Enter your **PIN** to confirm.",
+            with_done: "⏳ **Processing Withdrawal**\n\nMoney will be sent to your linked bank account.",
+
+            err_amount: "⚠️ Invalid amount.",
+            err_pin: "❌ Wrong PIN.",
+            err_bal: "⚠️ Insufficient funds.",
+            fallback: "🤖 I didn't understand. Use the menu.",
+            smart_fallback: "🤖 I'm training AI. \n\nYou can type:\n🔹 *\"I want to deposit\"*\n🔹 *\"Register me\"*\n🔹 *\"Withdraw\"*\n\nOr use the menu below. 👇"
         }
     },
     br: {
         flag: "🇧🇷", currency: "R$", locale: "pt-BR",
-        nav_chat: "Console Chat", nav_crm: "CRM Jogadores", nav_dash: "Painel",
-        status_online: "SISTEMA ATIVO", title_agent: "Agente Operacional IA", ggr_label: "Lucro Líquido", reset_btn: "Resetar Sistema",
-        crm_title: "Gestão de Jogadores", crm_desc: "Controle centralizado BR.",
-        th_player: "JOGADOR", th_contact: "DADOS", th_status: "STATUS", th_balance: "SALDO", th_actions: "AÇÕES",
-        kpi_in: "Entradas", kpi_out: "Saídas", chart_fin: "Fluxo Financeiro", chart_kyc: "Novos Cadastros",
-        drawer_title: "Anexar Documentos", lbl_doc: "RG / CNH", lbl_receipt: "Comprovante", btn_cancel: "CANCELAR",
-        btn_pdf: "Relatório PDF",
         bot: {
-            welcome: "👋 Olá! Sou seu assistente **Casino BR**. Como ajudo?",
+            welcome: "👋 Olá! Sou seu assistente **Casino**. Como ajudo?",
+            welcome_known: "👋 Olá **{name}**! Como posso ajudar?",
             menu_recharge: "💰 Depositar", menu_balance: "📈 Saldo", menu_kyc: "🪪 Criar Conta", menu_withdraw: "📤 Sacar",
             menu_faq: "❓ Ajuda", menu_report: "🚨 Reportar", menu_agent: "👤 Suporte", menu_methods: "💳 Métodos",
-            ask_method: "📥 **Depósito via PIX**\n\nChave: **pix.casino@pagar.me**\n\nEnvie o comprovante.",
-            ask_email_bal: "🔒 **Segurança**\n\nInforme seu **Email** cadastrado.",
-            ask_pin: "🔑 Informe seu **PIN** de 4 dígitos.",
-            balance_show: "💰 **Saldo (BRL):**",
-            kyc_start: "📝 **Cadastro**\n\nEnvie uma foto do **RG** ou **CNH**.",
-            kyc_selfie: "✅ **Doc OK**\n\nAgora uma **Selfie** sua.",
-            kyc_email: "✅ **Biometria OK**\n\nInforme seu **Email**.",
-            kyc_pin: "🔐 **Senha**\n\nCrie um PIN de 4 números.",
-            kyc_done: "🎉 **Conta Pronta!**\n\nAguardando aprovação.",
-            withdraw_amount: "💸 **Saque**\n\nQuanto quer sacar? (Mín R$50)",
-            withdraw_cbu: "🏦 Informe sua **Chave PIX**.",
-            withdraw_done: "⏳ **Processando**\n\nPIX enviado em breve.",
-            error_pin: "❌ PIN incorreto.",
-            error_email: "❌ Email não encontrado.",
-            fallback: "⚠️ Não entendi. Use o menu."
+
+            reg_start: "📝 **Novo Usuário**\n\nPreciso do seu **Nome** real.",
+            reg_surname: "Ótimo. Agora seu **Sobrenome**.",
+            reg_user: "Crie um **Nome de Usuário**.",
+            reg_email: "📧 Digite seu **Email** pessoal.",
+            reg_pin: "🔒 Crie um **PIN de Segurança** (4 dígitos).",
+            reg_kyc: "📷 Para ativar, envie uma foto do seu **RG/CNH**.",
+            reg_selfie: "🤳 Agora uma **Selfie** segurando o documento.",
+            reg_done: "🎉 **Cadastro com Sucesso!**\n\nSua conta está sendo validada.",
+
+            dep_amount: "💰 **Depositar**\n\nQual valor?\n\n🔥 **Promo:** > 5.000 ganhe **10% EXTRA**.",
+            dep_receipt: "🏦 **PIX**\n\nChave: *casino.integraltek*\n\nEnvie o **comprovante**.",
+            dep_wait: "⏳ **Processando...**\n\nValidando com Vision AI...",
+            dep_done: "✅ **Solicitação Recebida**\n\nSerá creditado em breve após aprovação.",
+
+            with_amount: "💸 **Saque**\n\nQuanto quer sacar?",
+            with_pin: "🔐 Digite seu **PIN** para confirmar.",
+            with_done: "⏳ **Processando Saque**\n\nO dinheiro será enviado via PIX.",
+
+            err_amount: "⚠️ Valor inválido.",
+            err_pin: "❌ PIN Incorreto.",
+            err_bal: "⚠️ Saldo insuficiente.",
+            fallback: "🤖 Não entendi. Use o menu.",
+            smart_fallback: "🤖 Sou uma IA em treinamento. \n\nVocê pode digitar:\n🔹 *\"Quero depositar\"*\n🔹 *\"Criar conta\"*\n🔹 *\"Sacar\"*\n\nOu use o menu abaixo. 👇"
         }
     }
 };
@@ -120,77 +158,126 @@ function saveDB(d) {
 }
 
 // --- MOCK API (BACKEND SIMULATION) ---
-// This structure mimics real API calls, ready for Vercel Serverless
 const api = {
-    async getPlayers() {
-        // Simulate Network Delay
-        await new Promise(r => setTimeout(r, 300));
-        return window.db.players;
+    // 1. Session / Identity
+    async identifyUser() {
+        await new Promise(r => setTimeout(r, 100)); // Latency
+        const phone = window.db.session.phoneNumber;
+        const user = window.db.players.find(p => p.phone === phone);
+        if (user) {
+            window.db.session.userId = user.id;
+            saveDB(window.db);
+            return user;
+        }
+        return null;
     },
 
-    async registerPlayer(email, pin) {
+    // 2. Registration
+    async registerUser(data) {
         await new Promise(r => setTimeout(r, 800));
-        const newPlayer = {
-            id: Math.floor(Math.random()*9000+1000),
-            name: "New User",
-            email: email,
-            pin: pin,
+        const newId = Math.floor(Math.random() * 90000) + 10000;
+        const newUser = {
+            id: newId,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            username: data.username,
+            email: data.email,
+            phone: window.db.session.phoneNumber, // Bind to current session
+            pin: data.pin,
             balance: 0,
             status: "PENDING_KYC",
-            history: {in:0, out:0}
+            history: { in: 0, out: 0 },
+            kyc: { dni: false, selfie: false },
+            pendingAction: null
         };
-        window.db.players.unshift(newPlayer);
+        window.db.players.unshift(newUser);
+        window.db.session.userId = newId; // Auto-login
         saveDB(window.db);
-        return newPlayer;
+        return newUser;
     },
 
-    async requestWithdraw(email, amount) {
-        await new Promise(r => setTimeout(r, 600));
-        const req = {
-            id: Math.floor(Math.random()*9000+1000),
-            name: "Retiro Pendiente",
-            email: email,
-            pin: "0000",
-            balance: 0,
-            status: "PENDING_WITHDRAWAL",
-            history: {in:0, out:0}
+    // 3. Financials
+    async createDepositRequest(amount) {
+        await new Promise(r => setTimeout(r, 500));
+        const user = window.db.players.find(p => p.id === window.db.session.userId);
+        if (!user) throw new Error("No user");
+
+        const bonus = amount > 5000 ? amount * 0.10 : 0;
+
+        user.status = "PENDING_DEPOSIT";
+        user.pendingAction = {
+            type: "DEPOSIT",
+            amount: amount,
+            bonus: bonus,
+            total: amount + bonus,
+            timestamp: new Date().toISOString()
         };
-        window.db.players.unshift(req);
         saveDB(window.db);
-        return req;
+        return user;
     },
 
-    async updatePlayerStatus(id, newStatus, details = {}) {
-        await new Promise(r => setTimeout(r, 400));
-        const p = window.db.players.find(x => x.id === id);
-        if(!p) throw new Error("Player not found");
+    async createWithdrawRequest(amount) {
+        await new Promise(r => setTimeout(r, 500));
+        const user = window.db.players.find(p => p.id === window.db.session.userId);
+        if (!user) throw new Error("No user");
+        if (user.balance < amount) throw new Error("Insufficient funds");
 
-        p.status = newStatus;
-        if(details.balanceChange) {
-            p.balance += details.balanceChange;
-            if(details.balanceChange > 0) p.history.in += details.balanceChange;
-            else p.history.out += Math.abs(details.balanceChange);
+        user.status = "PENDING_WITHDRAWAL";
+        user.pendingAction = {
+            type: "WITHDRAW",
+            amount: amount,
+            timestamp: new Date().toISOString()
+        };
+        saveDB(window.db);
+        return user;
+    },
+
+    // 4. CRM Actions (Admin)
+    async approveAction(userId) {
+        await new Promise(r => setTimeout(r, 300));
+        const user = window.db.players.find(p => p.id === userId);
+        if (!user || !user.pendingAction) return;
+
+        const action = user.pendingAction;
+
+        if (action.type === "DEPOSIT") {
+            user.balance += action.total;
+            user.history.in += action.amount;
+            user.status = "VERIFIED";
+        } else if (action.type === "WITHDRAW") {
+            user.balance -= action.amount;
+            user.history.out += action.amount;
+            user.status = "VERIFIED";
         }
 
+        user.pendingAction = null;
         saveDB(window.db);
-        return p;
     },
 
-    async deletePlayer(id) {
-         window.db.players = window.db.players.filter(x => x.id !== id);
-         saveDB(window.db);
-         return true;
+    async rejectAction(userId) {
+        await new Promise(r => setTimeout(r, 300));
+        const user = window.db.players.find(p => p.id === userId);
+        if (user) {
+            user.status = "VERIFIED";
+            user.pendingAction = null;
+            saveDB(window.db);
+        }
     },
 
-    // For Config/Chat state persistence
     saveState() { saveDB(window.db); }
 };
 
-function resetSystem() {
-    if(confirm("¿Resetear todo el sistema? / Reset all?")) {
-        localStorage.removeItem(DB_KEY);
-        location.reload();
-    }
+// Security Helper (XSS Prevention)
+function escapeHTML(str) {
+    if(typeof str !== 'string') return str;
+    return str.replace(/[&<>'"]/g,
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag]));
 }
 
 // Format Money Helper
@@ -203,3 +290,4 @@ function formatMoney(amount) {
 // Initialize Global State
 window.db = loadDB();
 window.api = api;
+window.escapeHTML = escapeHTML; // Expose for app.js
