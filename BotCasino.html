@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integraltek AI - Enterprise Casino Suite</title>
+    <title>Integraltek AI - Command Center Casino Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -25,44 +25,40 @@
             background-size: 400px;
         }
 
-        .chat-bubble { position: relative; max-width: 90%; padding: 12px 16px; margin-bottom: 8px; font-size: 13px; line-height: 1.5; box-shadow: 0 1px 2px rgba(0,0,0,0.12); transition: all 0.3s ease; }
+        .chat-bubble { position: relative; max-width: 90%; padding: 12px 16px; margin-bottom: 8px; font-size: 13.5px; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.12); transition: all 0.3s ease; }
         .bubble-bot { align-self: flex-start; background: white; border-radius: 0 16px 16px 16px; }
         .bubble-user { align-self: flex-end; background: var(--wa-bubble-user); border-radius: 16px 0 16px 16px; }
 
-        .wa-btn-card {
-            @apply block w-full text-left py-3 px-4 bg-slate-50 border border-slate-100 text-blue-600 font-bold text-[11px] rounded-xl mt-2 hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-sm uppercase tracking-wider flex items-center justify-between;
+        .wa-btn {
+            @apply block w-full text-left py-3 px-4 bg-slate-50 border border-slate-200 text-blue-600 font-bold text-[11px] rounded-xl mt-2 hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-sm uppercase tracking-wider flex items-center justify-between;
         }
 
-        .attachment-menu { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(20px) scale(0.9); opacity: 0; pointer-events: none; }
+        .attachment-menu { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none; }
         .attachment-menu.active { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
 
-        .nav-btn.active { @apply bg-blue-600 text-white shadow-xl shadow-blue-600/30; }
+        .nav-btn.active { @apply bg-blue-600 text-white shadow-xl shadow-blue-500/30; }
         
-        .scan-line { width: 100%; height: 3px; background: #10b981; position: absolute; top: 0; left: 0; animation: scan 2.5s infinite linear; box-shadow: 0 0 12px #10b981; z-index: 10; }
+        .scan-line { width: 100%; height: 3px; background: #10b981; position: absolute; top: 0; left: 0; animation: scan 2s infinite linear; box-shadow: 0 0 10px #10b981; z-index: 10; }
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+
+        /* CRM Action Styles */
+        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 50; width: 190px; }
+        .dropdown-menu.show { display: block; }
+        .dropdown-item { @apply flex items-center space-x-3 p-3.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0; }
 
         .typing-dot { width: 4px; height: 4px; background: currentColor; border-radius: 50%; display: inline-block; animation: blink 1.4s infinite both; margin: 0 1px; }
         @keyframes blink { 0% { opacity: .2; } 20% { opacity: 1; } 100% { opacity: .2; } }
 
         @media (max-width: 1023px) {
             .mobile-nav {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 75px;
-                background: #0f172a;
-                display: flex !important;
-                z-index: 100;
-                border-top: 1px solid #1e293b;
-                justify-content: space-around;
-                align-items: center;
+                position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: #0f172a; display: flex !important; z-index: 100; border-top: 1px solid #1e293b; justify-content: space-around; align-items: center; padding: 0 10px;
             }
             .sidebar-desktop { display: none !important; }
             main { height: calc(100vh - 75px) !important; padding-bottom: 0 !important; }
-            .phone-container { border: none !important; border-radius: 0 !important; max-height: 100% !important; padding: 0 !important; width: 100% !important; }
+            .header-desktop { padding: 0.75rem 1rem !important; }
+            .phone-container { border: none !important; border-radius: 0 !important; max-height: 100% !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
             .phone-inner { border-radius: 0 !important; }
-            .island { display: none !important; }
+            .phone-island { display: none !important; }
         }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -74,12 +70,12 @@
     <!-- Sidebar Desktop -->
     <aside class="w-72 bg-slate-900 text-white flex flex-col shrink-0 z-50 sidebar-desktop shadow-2xl">
         <div class="p-8 border-b border-slate-800 flex flex-col items-center">
-            <div class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-[1.5rem] flex items-center justify-center text-3xl shadow-2xl mb-4 transform rotate-3">
-                <i class="fas fa-microchip"></i>
+            <div class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-3xl shadow-2xl mb-4 transform hover:rotate-6 transition-transform">
+                <i class="fas fa-robot"></i>
             </div>
             <div class="text-center">
-                <p class="font-black text-2xl tracking-tight uppercase">INTEGRALTEK</p>
-                <p class="text-[9px] text-blue-400 font-bold uppercase tracking-[0.4em] mt-1">Management Suite</p>
+                <p class="font-black text-2xl tracking-tighter uppercase leading-none">INTEGRALTEK</p>
+                <p class="text-[9px] text-blue-400 font-bold uppercase tracking-[0.4em] mt-2">Management Suite</p>
             </div>
         </div>
         <nav class="flex-1 p-6 space-y-4">
@@ -94,12 +90,12 @@
             </button>
         </nav>
         <div class="p-6">
-            <div class="bg-blue-600/10 border border-blue-500/20 rounded-[2rem] p-5 text-center">
+            <div class="bg-blue-600/10 border border-blue-500/20 rounded-3xl p-5 text-center shadow-inner">
                 <div class="flex items-center justify-center text-xs font-bold text-emerald-400 mb-1">
-                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse mr-2 shadow-[0_0_8px_#34d399]"></span>
-                    CORE ACTIVO v4.2
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-2"></span>
+                    SISTEMA ACTIVO
                 </div>
-                <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Enterprise Edition</p>
+                <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest leading-none">v4.2 Enterprise</p>
             </div>
         </div>
     </aside>
@@ -113,48 +109,42 @@
             <i class="fas fa-users-cog text-xl"></i><span class="text-[9px] font-black uppercase mt-1">CRM</span>
         </button>
         <button onclick="switchTab('dashboard')" id="btn-dashboard-mob" class="flex flex-col items-center text-slate-400">
-            <i class="fas fa-chart-line text-xl"></i><span class="text-[9px] font-black uppercase mt-1">Metricas</span>
+            <i class="fas fa-chart-line text-xl"></i><span class="text-[9px] font-black uppercase mt-1">Panel</span>
         </button>
     </div>
 
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col min-w-0 bg-white">
+    <!-- Main -->
+    <main class="flex-1 flex flex-col min-w-0 bg-white relative">
         
-        <!-- Header -->
-        <header class="h-16 lg:h-20 bg-white border-b border-slate-100 px-6 lg:px-10 flex items-center justify-between shrink-0">
+        <!-- Navbar -->
+        <header class="h-16 lg:h-20 bg-white border-b border-slate-100 px-6 lg:px-10 flex items-center justify-between z-40 shrink-0 header-desktop">
             <div>
-                <h2 id="tab-title" class="font-black text-xl lg:text-2xl text-slate-800 tracking-tight italic leading-none">Centro de Comando</h2>
-                <p class="hidden sm:block text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-2">Sincronización Whitelabel: Integraltek AI</p>
+                <h2 id="tab-title" class="font-black text-xl lg:text-2xl text-slate-800 tracking-tight leading-none italic">Asistente Operativo AI</h2>
+                <div class="flex items-center space-x-2 mt-1">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <p class="text-[9px] lg:text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Sincronización Whitelabel: Integraltek</p>
+                </div>
             </div>
-            <div class="flex items-center space-x-6">
-                <div class="hidden sm:flex items-center space-x-3 px-6 py-2 bg-slate-900 rounded-[1.2rem] shadow-xl border border-slate-800">
+            <div class="hidden sm:flex items-center space-x-6">
+                <div class="px-6 py-2 bg-slate-900 rounded-2xl flex items-center space-x-4 shadow-xl border border-slate-800">
                     <div class="text-right">
                         <p class="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Profit Neto Hoy</p>
-                        <p id="header-profit" class="text-lg font-black text-emerald-400 leading-none">$833.900</p>
+                        <p id="header-profit" class="text-lg font-black text-emerald-400 leading-none mt-1">$833.900</p>
                     </div>
-                    <div class="w-8 h-8 bg-emerald-500/10 text-emerald-500 rounded-lg flex items-center justify-center border border-emerald-500/20">
-                        <i class="fas fa-vault text-xs"></i>
-                    </div>
-                </div>
-                <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 border border-slate-200 cursor-pointer">
-                    <i class="fas fa-bell"></i>
                 </div>
             </div>
         </header>
 
-        <!-- Dynamic Content -->
         <div class="flex-1 overflow-hidden relative">
 
-            <!-- TAB 1: AGENTE IA -->
+            <!-- TAB 1: AGENTE (WhatsApp) -->
             <div id="tab-agent" class="h-full flex flex-col lg:flex-row items-center justify-center p-0 lg:p-10 gap-10 overflow-y-auto bg-slate-50/50">
-                
-                <div class="phone-container w-full max-w-[420px] h-full max-h-[840px] bg-slate-900 rounded-[3rem] lg:rounded-[4rem] p-3 lg:p-4 shadow-2xl border-[10px] border-slate-800 flex flex-col relative shrink-0 overflow-hidden">
-                    <div class="island w-24 lg:w-32 h-6 lg:h-8 bg-slate-800 absolute top-0 left-1/2 -translate-x-1/2 rounded-b-[2rem] z-20 flex items-center justify-center">
+                <div class="phone-container w-full max-w-[420px] h-full max-h-[820px] bg-slate-900 rounded-[3rem] lg:rounded-[4rem] p-3 lg:p-4 shadow-2xl border-[10px] border-slate-800 flex flex-col relative shrink-0 overflow-hidden">
+                    <div class="phone-island w-24 lg:w-32 h-6 lg:h-8 bg-slate-800 absolute top-0 left-1/2 -translate-x-1/2 rounded-b-[2rem] z-20 flex items-center justify-center">
                         <div class="w-10 h-1 bg-slate-900 rounded-full opacity-50"></div>
                     </div>
-                    
-                    <div class="phone-inner flex-1 bg-white rounded-[2.5rem] lg:rounded-[3.5rem] overflow-hidden flex flex-col relative">
-                        <!-- Header WhatsApp -->
+                    <div class="phone-inner flex-1 bg-white rounded-[2.5rem] lg:rounded-[3.2rem] overflow-hidden flex flex-col relative shadow-inner">
+                        <!-- Header -->
                         <div class="bg-[var(--wa-teal)] p-4 pt-10 lg:pt-14 text-white flex items-center space-x-3 z-10 shadow-lg">
                             <div class="w-10 h-10 lg:w-12 lg:h-12 bg-white/20 rounded-2xl flex items-center justify-center text-xl lg:text-2xl shadow-inner border border-white/10">
                                 <i class="fas fa-robot"></i>
@@ -163,61 +153,47 @@
                                 <p class="font-black text-sm tracking-tight truncate">Integraltek AI Assistant</p>
                                 <p id="typing-indicator" class="text-[10px] opacity-70 font-bold h-3">en línea</p>
                             </div>
-                            <div class="flex space-x-3 text-sm opacity-60">
-                                <i class="fas fa-video"></i><i class="fas fa-phone"></i><i class="fas fa-ellipsis-v"></i>
-                            </div>
                         </div>
-
-                        <!-- Chat messages -->
-                        <div id="chat-messages" class="flex-1 whatsapp-bg p-4 lg:p-5 overflow-y-auto flex flex-col scroll-smooth">
-                            <!-- Injected by JS -->
-                        </div>
-
-                        <!-- Attachment Popup -->
+                        <!-- Chat box -->
+                        <div id="chat-messages" class="flex-1 whatsapp-bg p-4 lg:p-6 overflow-y-auto flex flex-col scroll-smooth"></div>
+                        <!-- Attach menu -->
                         <div id="attach-menu" class="attachment-menu absolute bottom-24 left-6 right-6 bg-white/95 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl grid grid-cols-3 gap-6 border border-slate-100 z-50">
                             <button onclick="simulateMedia('dni')" class="flex flex-col items-center">
-                                <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg transform active:scale-90 transition-all"><i class="fas fa-id-card"></i></div>
-                                <span class="text-[9px] font-black text-slate-500 mt-2 uppercase tracking-tighter">Subir DNI</span>
+                                <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg active:scale-90"><i class="fas fa-id-card"></i></div>
+                                <span class="text-[9px] font-black text-slate-500 mt-2 uppercase">Subir DNI</span>
                             </button>
                             <button onclick="simulateMedia('selfie')" class="flex flex-col items-center">
-                                <div class="w-14 h-14 bg-rose-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg active:scale-90 transition-all"><i class="fas fa-camera"></i></div>
-                                <span class="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-tighter">Selfie</span>
+                                <div class="w-14 h-14 bg-rose-600 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg active:scale-90"><i class="fas fa-camera"></i></div>
+                                <span class="text-[9px] font-black text-slate-400 mt-2 uppercase">Selfie</span>
                             </button>
                             <button onclick="simulateMedia('pago')" class="flex flex-col items-center">
-                                <div class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg active:scale-90 transition-all"><i class="fas fa-receipt"></i></div>
+                                <div class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg active:scale-90"><i class="fas fa-receipt"></i></div>
                                 <span class="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-tighter">PAGO</span>
                             </button>
                         </div>
-
-                        <!-- Chat Input -->
+                        <!-- Input Bar -->
                         <div class="p-4 bg-[#f0f2f5] border-t flex items-center space-x-3 relative z-30 shrink-0">
-                            <button onclick="toggleAttach()" class="text-slate-400 hover:text-blue-500 transition-all px-1 transform active:scale-75">
-                                <i class="fas fa-paperclip text-2xl rotate-45"></i>
-                            </button>
-                            <input id="user-input" type="text" placeholder="Escribí un mensaje..." class="flex-1 bg-white p-3.5 rounded-2xl border-none shadow-sm text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                            <button onclick="processInput()" class="w-12 h-12 bg-[var(--wa-light-teal)] text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all shrink-0">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
+                            <button onclick="toggleAttach()" class="text-slate-400 hover:text-blue-500 transition-all px-1 active:scale-75"><i class="fas fa-paperclip text-2xl rotate-45"></i></button>
+                            <input id="user-input" type="text" placeholder="Escribí un mensaje..." class="flex-1 bg-white p-3.5 rounded-2xl border-none shadow-sm text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <button onclick="processInput()" class="w-12 h-12 bg-[var(--wa-light-teal)] text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all shrink-0"><i class="fas fa-paper-plane"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Lógica Contextual Lateral -->
+                <!-- Info Side Panel -->
                 <div class="hidden xl:flex flex-col w-full max-w-sm space-y-6">
                     <div class="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-200 border-l-[12px] border-l-blue-600">
-                        <h3 class="font-black text-slate-900 text-xl mb-4 tracking-tighter italic uppercase leading-none">Visión Artificial</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed font-medium">
-                            El bot mantiene el **estado de la conversación**. Si está en medio de un alta, bloquea otras opciones para asegurar la captura de datos (KYC).
+                        <h3 class="font-black text-slate-900 text-xl mb-4 tracking-tighter uppercase leading-none">Inteligencia de Flujo</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed font-medium italic">
+                            El bot mantiene el **contexto**. Pruebe el registro (DNI/Selfie) para ver cómo el usuario impacta automáticamente en el CRM con estado **PENDIENTE**.
                         </p>
                     </div>
-                    <div class="bg-slate-900 p-8 rounded-[3.5rem] shadow-2xl text-white">
-                        <div class="flex items-center space-x-3 mb-6">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <div class="bg-slate-900 p-8 rounded-[3rem] shadow-2xl text-white">
+                        <div class="flex items-center justify-between mb-6">
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logs de Auditoría IA</p>
+                            <div class="flex space-x-1"><div class="w-1 h-1 bg-blue-500 rounded-full animate-ping"></div></div>
                         </div>
-                        <div id="security-log" class="space-y-4 max-h-[300px] overflow-y-auto pr-2 text-[10px]">
-                            <!-- Logs -->
-                        </div>
+                        <div id="security-log" class="space-y-4 max-h-[300px] overflow-y-auto pr-2 text-[10px]"></div>
                     </div>
                 </div>
             </div>
@@ -226,66 +202,62 @@
             <div id="tab-crm" class="hidden h-full p-6 lg:p-12 overflow-y-auto bg-slate-50/50">
                 <div class="mb-10 flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                     <div>
-                        <h3 class="text-3xl lg:text-4xl font-black text-slate-900 tracking-tighter italic leading-none">Gestión Integral de Jugadores</h3>
-                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-3">Aprobación de KYC, Retiros y Depósitos en tiempo real</p>
+                        <h3 class="text-3xl lg:text-4xl font-black text-slate-800 tracking-tighter italic leading-none">Gestión Operativa CRM</h3>
+                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-3">Control total de depósitos, retiros y validaciones biométricas</p>
                     </div>
-                    <div class="flex gap-4 w-full md:w-auto">
-                        <div class="bg-white px-6 py-3 rounded-2xl border shadow-sm flex items-center">
-                            <span class="w-2 h-2 bg-emerald-500 rounded-full mr-3 animate-pulse"></span>
-                            <span class="text-xs font-black uppercase text-slate-600 tracking-tighter">Sincronización CRM Activa</span>
-                        </div>
+                    <div class="bg-emerald-100 text-emerald-700 px-5 py-3 rounded-2xl text-xs font-black shadow-sm flex items-center uppercase tracking-tighter">
+                        <i class="fas fa-circle text-[8px] mr-3 animate-pulse"></i> CRM v4 Sincronizado
                     </div>
                 </div>
 
                 <div class="bg-white rounded-[3rem] border border-slate-100 shadow-2xl overflow-x-auto">
-                    <table class="w-full text-left min-w-[1000px]">
+                    <table class="w-full text-left min-w-[1250px]">
                         <thead class="bg-slate-900 text-white">
                             <tr>
                                 <th class="p-8 text-[10px] font-black uppercase tracking-widest opacity-50">ID / Jugador</th>
                                 <th class="p-8 text-[10px] font-black uppercase tracking-widest opacity-50">Contacto / PIN</th>
                                 <th class="p-8 text-[10px] font-black uppercase tracking-widest text-center opacity-50">Estado / Validación</th>
+                                <th class="p-8 text-[10px] font-black uppercase tracking-widest text-right opacity-50">Cash-In / Out</th>
                                 <th class="p-8 text-[10px] font-black uppercase tracking-widest text-right opacity-50">Saldo (Fichas)</th>
                                 <th class="p-8 text-[10px] font-black uppercase tracking-widest text-right opacity-50">Acciones Directas</th>
                             </tr>
                         </thead>
-                        <tbody id="crm-table-body">
-                            <!-- CRM rows -->
-                        </tbody>
+                        <tbody id="crm-table-body"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- TAB 3: DASHBOARD DE RENTABILIDAD -->
+            <!-- TAB 3: DASHBOARD -->
             <div id="tab-dashboard" class="hidden h-full p-6 lg:p-12 overflow-y-auto space-y-10 bg-slate-50/50">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col justify-between">
-                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 italic leading-tight">Cash-In (Hoy)</p>
-                        <h4 class="text-5xl font-black text-emerald-600 tracking-tighter">$1.245k</h4>
-                        <p class="text-[10px] text-emerald-500 font-bold uppercase mt-4"><i class="fas fa-arrow-up mr-1"></i> +12% vs ayer</p>
+                    <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col justify-between group hover:scale-[1.02] transition-transform">
+                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Ingresos (Neto)</p>
+                        <h4 class="text-5xl font-black text-emerald-600 tracking-tighter leading-none">$1.245k</h4>
+                        <p class="text-[10px] text-emerald-500 font-bold uppercase mt-6 tracking-widest"><i class="fas fa-arrow-up mr-2"></i> +12% vs ayer</p>
                     </div>
-                    <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col justify-between">
-                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 italic leading-tight">Cash-Out (Hoy)</p>
-                        <h4 class="text-5xl font-black text-rose-500 tracking-tighter">$412k</h4>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-4">Retiros autorizados</p>
+                    <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col justify-between group hover:scale-[1.02] transition-transform">
+                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Retiros (Neto)</p>
+                        <h4 class="text-5xl font-black text-rose-500 tracking-tighter leading-none">$412k</h4>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-6 tracking-widest">Salida autorizada</p>
                     </div>
-                    <div class="bg-slate-900 p-10 rounded-[3rem] shadow-2xl text-white flex flex-col justify-between border-t-8 border-blue-500">
-                        <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-4 italic leading-tight">GGR Proyectado</p>
-                        <h4 id="dashboard-profit" class="text-5xl font-black text-white tracking-tighter">$833k</h4>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-4 tracking-widest">Beneficio Operativo</p>
+                    <div class="bg-slate-900 p-10 rounded-[3rem] shadow-2xl text-white flex flex-col justify-between border-t-8 border-blue-600">
+                        <p class="text-[11px] font-black text-blue-400 uppercase tracking-widest mb-4 italic leading-tight">GGR (Profit Real)</p>
+                        <h4 id="dashboard-profit" class="text-5xl font-black text-white tracking-tighter leading-none">$833k</h4>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mt-6 tracking-widest italic">Beneficio Operativo</p>
                     </div>
-                    <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col justify-between">
-                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 italic leading-tight">Nuevos KYC</p>
-                        <h4 class="text-5xl font-black text-blue-600 tracking-tighter">154</h4>
-                        <p class="text-[10px] text-emerald-500 font-bold uppercase mt-4">Altas automatizadas</p>
+                    <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col justify-between group hover:scale-[1.02] transition-transform">
+                        <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Eficiencia IA</p>
+                        <h4 class="text-5xl font-black text-blue-600 tracking-tighter leading-none">96.8%</h4>
+                        <p class="text-[10px] text-emerald-500 font-bold uppercase mt-6 tracking-widest">Altas automatizadas</p>
                     </div>
                 </div>
                 <div class="grid lg:grid-cols-2 gap-8">
-                    <div class="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-sm h-[500px] flex flex-col">
-                        <h3 class="font-black text-2xl text-slate-800 mb-10 tracking-tight italic uppercase leading-none">Flujo de Dinero (Semanas)</h3>
+                    <div class="bg-white p-12 rounded-[4.5rem] border border-slate-100 shadow-sm h-[520px] flex flex-col">
+                        <h3 class="font-black text-2xl text-slate-800 mb-10 tracking-tight italic uppercase leading-none">Cash-In vs Cash-Out (Semanal)</h3>
                         <div class="flex-1 overflow-hidden"><canvas id="finChart"></canvas></div>
                     </div>
-                    <div class="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-sm h-[500px] flex flex-col">
-                        <h3 class="font-black text-2xl text-slate-800 mb-10 tracking-tight italic uppercase leading-none">Rendimiento Operativo Bot</h3>
+                    <div class="bg-white p-12 rounded-[4.5rem] border border-slate-100 shadow-sm h-[520px] flex flex-col">
+                        <h3 class="font-black text-2xl text-slate-800 mb-10 tracking-tight italic uppercase leading-none">Conversión de Usuarios AI</h3>
                         <div class="flex-1 overflow-hidden"><canvas id="kycChart"></canvas></div>
                     </div>
                 </div>
@@ -294,46 +266,39 @@
         </div>
     </main>
 
-    <!-- Vision Engine Modal -->
+    <!-- Vision Modal -->
     <div id="vision-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-3xl z-[100] hidden items-center justify-center p-6">
         <div class="bg-white rounded-[4.5rem] max-w-md w-full p-12 shadow-2xl text-center border border-slate-100 scale-95 animate-fade-in">
-            <div class="w-28 h-28 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-[2.5rem] flex items-center justify-center text-5xl mx-auto mb-10 shadow-2xl shadow-blue-500/40 transform rotate-6">
-                <i class="fas fa-id-card"></i>
-            </div>
-            <h3 class="text-4xl font-black mb-3 uppercase tracking-tighter text-slate-900 leading-none">Vision Engine</h3>
-            <p id="vision-status" class="text-slate-500 text-sm mb-12 font-medium italic">Cruzando biometría con base gubernamental...</p>
-            
-            <div class="space-y-10 mb-12">
-                <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden shadow-inner">
-                    <div id="vision-progress" class="h-full bg-blue-600 w-0 transition-all duration-[3000ms] ease-out shadow-[0_0_20px_rgba(37,99,235,0.6)]"></div>
-                </div>
+            <div class="w-28 h-28 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-[2.5rem] flex items-center justify-center text-4xl mx-auto mb-10 shadow-2xl transform rotate-6 italic font-black">AI</div>
+            <h3 class="text-3xl font-black mb-3 uppercase tracking-tighter text-slate-900 leading-none">Vision Core v4.2</h3>
+            <p id="vision-status" class="text-slate-500 text-sm mb-12 font-medium italic">Cruzando biometría contra base RENAPER...</p>
+            <div class="space-y-10 mb-12 text-left">
+                <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden shadow-inner"><div id="vision-progress" class="h-full bg-blue-600 w-0 transition-all duration-[3000ms] ease-out shadow-[0_0_15px_rgba(37,99,235,0.5)]"></div></div>
                 <div class="grid grid-cols-2 gap-8">
-                    <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-sm text-center">
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Match Score</p>
-                        <p id="match-score" class="text-3xl font-black text-blue-600 tracking-tighter">0%</p>
+                    <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 text-center shadow-sm">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-2 leading-none">Match Facial</p><p id="match-score" class="text-3xl font-black text-blue-600 tracking-tighter leading-none">0%</p>
                     </div>
-                    <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-sm text-center">
-                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Estado</p>
-                        <p id="score-dni" class="text-2xl font-black text-emerald-600 tracking-tighter uppercase leading-none">OK</p>
+                    <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 text-center shadow-sm">
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-2 leading-none">DNI Integrity</p><p id="score-dni" class="text-2xl font-black text-emerald-600 tracking-tighter uppercase leading-none">VALID</p>
                     </div>
                 </div>
             </div>
-
-            <button onclick="finishVision()" id="btn-vision-done" class="w-full py-6 bg-slate-900 text-white rounded-[2.2rem] font-black shadow-2xl opacity-50 cursor-not-allowed transform active:scale-95 transition-all" disabled>PROCESANDO SEGURIDAD...</button>
+            <button onclick="finishVision()" id="btn-vision-done" class="w-full py-6 bg-slate-900 text-white rounded-[2.2rem] font-black shadow-2xl opacity-50 cursor-not-allowed transform active:scale-95 transition-all" disabled>PROCESANDO IDENTIDAD...</button>
         </div>
     </div>
 
     <script>
         // --- DATA SYSTEM ---
         let players = [
-            { id: "#8291", name: "Matias S.", email: "m.suarez@gmail.com", status: "APROBADO", balance: 45200, color: "blue", pin: "1234", history: 150000, out: 104800 },
-            { id: "#7742", name: "Carla L.", email: "carla.juego@yahoo.com", status: "APROBADO", balance: 125000, color: "pink", pin: "0000", history: 300000, out: 175000 },
-            { id: "#9931", name: "Julián R.", email: "julian@outlook.com", status: "PENDIENTE", balance: 0, color: "indigo", pin: "9999", history: 0, out: 0 },
-            { id: "#6610", name: "Anónimo", email: "p.lopez@gmail.com", status: "RETIRO PENDIENTE", balance: 15000, color: "slate", pin: "1111", history: 50000, out: 35000 }
+            { id: "#8291", name: "Matias S.", email: "m.suarez@gmail.com", status: "APROBADO", balance: 45200, color: "blue", pin: "1234", history: 150000, out: 104800, lastOp: "Depósito" },
+            { id: "#7742", name: "Carla L.", email: "carla.juego@yahoo.com", status: "APROBADO", balance: 125000, color: "pink", pin: "0000", history: 300000, out: 175000, lastOp: "Retiro" },
+            { id: "#9931", name: "Julián R.", email: "julian@outlook.com", status: "PENDIENTE KYC", balance: 0, color: "indigo", pin: "9999", history: 0, out: 0, lastOp: "Alta KYC" },
+            { id: "#6610", name: "Pedro L.", email: "p.lopez@gmail.com", status: "RETIRO PENDIENTE", balance: 15000, color: "slate", pin: "1111", history: 50000, out: 35000, lastOp: "Pedido Retiro" },
+            { id: "#5512", name: "Marcelo T.", email: "mt@gmail.com", status: "DEPÓSITO PENDIENTE", balance: 1200, color: "emerald", pin: "2222", history: 1200, out: 0, lastOp: "Ticket Recarga" }
         ];
 
         // --- BOT CONFIG ---
-        const botMainMsg = "👋 ¡Hola! Soy tu asistente de **Integraltek**. He optimizado tu perfil para que operes con seguridad. Seleccioná una operación rápida:";
+        const botMainMsg = "👋 ¡Hola! Soy tu asistente inteligente de **Integraltek**. ¿Qué operación deseás realizar hoy?";
 
         // --- NAVIGATION ---
         function switchTab(tab) {
@@ -342,7 +307,7 @@
                 const btnD = document.getElementById('btn-' + t + '-desk');
                 const btnM = document.getElementById('btn-' + t + '-mob');
                 if (view) view.classList.add('hidden');
-                if (btnD) btnD.classList.remove('active', 'bg-blue-600', 'text-white');
+                if (btnD) btnD.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-xl');
                 if (btnM) btnM.classList.remove('text-blue-500');
                 if (btnM) btnM.classList.add('text-slate-400');
             });
@@ -357,7 +322,7 @@
 
             const tt = document.getElementById('tab-title');
             if (tt) {
-                const titles = { agent: 'Centro Operativo AI', crm: 'Gestión & CRM Jugadores', dashboard: 'Análisis de Rentabilidad' };
+                const titles = { agent: 'Centro Operativo AI', crm: 'Gestión CRM & Solicitudes', dashboard: 'Análisis Financiero GGR' };
                 tt.innerText = titles[tab];
             }
 
@@ -365,11 +330,10 @@
             if (tab === 'crm') renderCRM();
         }
 
-        // --- BOT ENGINE ---
+        // --- BOT LOGIC ---
         let chatContext = 'INIT';
-        let tempUser = { name: "", email: "", pin: "" };
+        let currentUser = { name: "", email: "", pin: "" };
         const chatBox = document.getElementById('chat-messages');
-        const userInputBox = document.getElementById('user-input');
         const typingIndicator = document.getElementById('typing-indicator');
 
         function addMsg(role, text, type = 'text') {
@@ -378,21 +342,16 @@
             div.className = `chat-bubble bubble-${role} animate-fade-in flex flex-col shadow-sm`;
             
             if (type === 'image') {
-                div.innerHTML = `<div class="bg-slate-100 rounded-[2rem] p-12 text-center border-2 border-dashed border-slate-300 mb-2"><i class="fas fa-file-invoice-dollar text-slate-400 text-5xl"></i></div><p class="text-[9px] font-black text-slate-500 uppercase tracking-widest text-center italic">Documento procesado por IA</p>`;
+                div.innerHTML = `<div class="bg-slate-100 rounded-[2rem] p-12 text-center border-2 border-dashed border-slate-300 mb-2 transition-all hover:bg-slate-200"><i class="fas fa-file-invoice-dollar text-slate-400 text-5xl"></i></div><p class="text-[9px] font-black text-slate-500 uppercase tracking-widest text-center italic leading-none">Procesado por Vision Engine</p>`;
             } else if (type === 'scanning') {
-                div.innerHTML = `<div class="scan-line"></div><p class="font-black text-emerald-600 flex items-center italic mb-1 uppercase tracking-tighter"><i class="fas fa-fingerprint mr-2 animate-pulse"></i> ANALIZANDO...</p><p class="text-xs text-slate-500 leading-tight">${text}</p>`;
+                div.innerHTML = `<div class="scan-line"></div><p class="font-black text-emerald-600 flex items-center italic mb-2 uppercase tracking-tighter"><i class="fas fa-fingerprint mr-2 animate-pulse"></i> ANALIZANDO...</p><p class="text-xs text-slate-500 leading-tight">${text}</p>`;
                 div.classList.add('overflow-hidden', 'min-h-[110px]', 'bg-emerald-50/20', 'border', 'border-emerald-100');
             } else if (type === 'menu') {
-                div.innerHTML = `<p class="font-black text-blue-600 mb-3 uppercase tracking-tighter text-sm italic">Integraltek Intelligence</p><p class="mb-5 font-medium text-slate-700">${text}</p>`;
-                const buttons = [
-                    { id: '1', l: '💰 Hacer una recarga' },
-                    { id: '2', l: '📈 Consultar mi saldo' },
-                    { id: '3', l: '🪪 Registrar cuenta' },
-                    { id: '6', l: '📤 Solicitar retiro' }
-                ];
+                div.innerHTML = `<p class="font-black text-blue-600 mb-2 uppercase tracking-tighter text-sm italic">Integraltek Intelligence</p><p class="mb-5 font-medium text-slate-700 leading-relaxed">${text}</p>`;
+                const buttons = [{ id: '1', l: '💰 Recargar saldo' }, { id: '2', l: '📈 Consultar mi saldo' }, { id: '3', l: '🪪 Registrar cuenta' }, { id: '6', l: '📤 Solicitar retiro' }];
                 buttons.forEach(b => {
                     const btn = document.createElement('button');
-                    btn.className = "wa-btn-card";
+                    btn.className = "wa-btn";
                     btn.innerHTML = `<span>${b.l}</span><i class="fas fa-chevron-right opacity-30 text-[9px]"></i>`;
                     btn.onclick = () => { addMsg('user', b.l); handleBotAI(b.id); };
                     div.appendChild(btn);
@@ -408,71 +367,60 @@
         }
 
         function processInput() {
-            if (!userInputBox) return;
-            const val = userInputBox.value.trim();
+            const uBox = document.getElementById('user-input');
+            if (!uBox) return;
+            const val = uBox.value.trim();
             if (!val) return;
             addMsg('user', val);
-            userInputBox.value = '';
+            uBox.value = '';
             handleBotAI(val);
         }
 
         function handleBotAI(input) {
             const clean = input.toLowerCase();
             if (typingIndicator) typingIndicator.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span> bot analizando...';
-
             setTimeout(() => {
                 if (typingIndicator) typingIndicator.innerText = 'en línea';
-
                 if (clean === 'menu' || clean === 'hola' || clean === 'menú') {
                     addMsg('bot', botMainMsg, 'menu');
                     chatContext = 'INIT';
                     return;
                 }
-
                 if (chatContext === 'INIT') {
                     if (clean === '1') {
-                        addMsg('bot', `💰 **RECARGAS**\n\nTransferí a nuestro Alias oficial de MercadoPago:\n🔹 **recargas.juego.mp**\n\nCuando termines, subí el comprobante con el **Clip 📎** o escribí **LISTO**.`);
+                        addMsg('bot', `💰 **SISTEMA DE RECARGAS**\n\nTransferí a nuestro Alias oficial de MercadoPago:\n🔹 **recargas.juego.mp**\n\nCuando termines, subí el comprobante con el **Clip 📎** o escribí **LISTO**.`);
                         chatContext = 'WAIT_RECHARGE';
                     } else if (clean === '2') {
-                        addMsg('bot', `📈 **SALDO SEGURO**\n\nPara validar tu identidad, ingresá tu **Email** registrado.`);
+                        addMsg('bot', `📈 **CONSULTA DE SALDO SEGURO**\n\nPara validar tu identidad, ingresá tu **Email** registrado.`);
                         chatContext = 'SALDO_EMAIL';
                     } else if (clean === '3') {
-                        addMsg('bot', `🪪 **REGISTRO PROFESIONAL**\n\nHabilitemos tu cuenta en 4 pasos.\n\n**Paso 1:** Subí tu **DNI (Frente)** usando el **Clip 📎**.`);
+                        addMsg('bot', `🪪 **ALTA DE JUGADOR**\n\nHabilitemos tu cuenta en 4 pasos.\n\n**Paso 1:** Subí tu **DNI (Frente)** usando el **Clip 📎**.`);
                         chatContext = 'KYC_DNI';
                     } else if (clean === '6') {
-                        addMsg('bot', `📤 **RETIRO DE FICHAS**\n\n¿Qué **monto** querés retirar? (Min: $2.000)`);
+                        addMsg('bot', `📤 **RETIRO DE FICHAS**\n\n¿Qué **monto** querés retirar? (Mínimo: $2.000)`);
                         chatContext = 'RETIRO_MONTO';
                     }
                 } 
                 else if (chatContext === 'KYC_EMAIL') {
                     tempUser.email = input;
-                    addMsg('bot', `✅ **EMAIL REGISTRADO**\n\n**Paso 4 (Final):** Creá un **PIN de 4 números** para proteger tu saldo.`);
+                    addMsg('bot', `✅ **EMAIL REGISTRADO: ${input}**\n\n**Paso 4 (Final):** Creá un **PIN de 4 números** para proteger tu saldo.`);
                     chatContext = 'KYC_PIN';
                 }
                 else if (chatContext === 'KYC_PIN') {
                     tempUser.pin = input;
-                    addMsg('bot', `🎉 **¡IDENTIDAD HABILITADA!**\n\nTu PIN secreto es **${input}**. Tu cuenta ya es profesional.`, 'menu');
-                    players.push({ id: "#"+Math.floor(Math.random()*9000+1000), name: "NUEVO JUGADOR", email: tempUser.email, status: "APROBADO", balance: 0, color: "emerald", pin: input, history: 0, out: 0, lastOp: "Alta" });
+                    addMsg('bot', `🎉 **¡IDENTIDAD HABILITADA!**\n\nTu PIN secreto es **${input}**. Tu cuenta ya es profesional. ¡A jugar! 🎰`);
+                    players.push({ id: "#"+Math.floor(Math.random()*9000+1000), name: "JUGADOR NUEVO", email: tempUser.email, status: "APROBADO", balance: 0, color: "emerald", pin: input, history: 0, out: 0, lastOp: "Alta" });
                     addLiveLog("CRM: Nuevo usuario verificado correctamente", "emerald");
                     chatContext = 'INIT';
                 }
                 else if (chatContext === 'SALDO_EMAIL') {
                     const found = players.find(p => p.email.toLowerCase() === clean);
-                    if (found) {
-                        currentUser = found;
-                        addMsg('bot', `🆔 Usuario **${found.name}** encontrado.\n\nIngresá tu **PIN SECRETO** de 4 dígitos.`);
-                        chatContext = 'SALDO_PIN';
-                    } else { addMsg('bot', `⚠️ No encontrado. Escribí **Menú**.`); chatContext = 'INIT'; }
+                    if (found) { currentUser = found; addMsg('bot', `🆔 Usuario **${found.name}** encontrado.\n\nIngresá tu **PIN SECRETO** de 4 dígitos.`); chatContext = 'SALDO_PIN'; }
+                    else { addMsg('bot', `⚠️ No encontrado. Escribí **Menú**.`); chatContext = 'INIT'; }
                 }
                 else if (chatContext === 'SALDO_PIN') {
-                    if (clean === currentUser.pin) {
-                        addMsg('bot', `📊 **SALDO CONFIRMADO**\n\nTenés **$${currentUser.balance.toLocaleString()} fichas**.`, 'menu');
-                        chatContext = 'INIT';
-                    } else { addMsg('bot', `❌ **PIN INCORRECTO**. Escribí **Menú** para reiniciar.`); }
-                }
-                else if (chatContext === 'RETIRO_MONTO') {
-                    addMsg('bot', `🏦 **CUENTA DE DESTINO**\n\nEnviame tu **Alias o CBU** para el envío del dinero.`);
-                    chatContext = 'INIT';
+                    if (clean === currentUser.pin) { addMsg('bot', `📊 **SALDO CONFIRMADO**\n\nTenés **$${currentUser.balance.toLocaleString()} fichas**.`, 'menu'); chatContext = 'INIT'; }
+                    else { addMsg('bot', `❌ **PIN INCORRECTO**. Escribí **Menú** para reiniciar.`); }
                 }
                 else if (chatContext === 'WAIT_RECHARGE' && clean.includes('listo')) {
                     addMsg('bot', `⏳ ¡Acreditado! Tenés **$5.000** adicionales disponibles. 🎉`);
@@ -482,26 +430,15 @@
             }, 1000);
         }
 
-        // --- SIMULATED UPLOADS ---
-        function toggleAttach() { 
-            const menu = document.getElementById('attach-menu');
-            if (menu) menu.classList.toggle('active'); 
-        }
-
+        // --- ATTACH ACTIONS ---
+        function toggleAttach() { const m = document.getElementById('attach-menu'); if (m) m.classList.toggle('active'); }
         function simulateMedia(type) {
             toggleAttach();
             addMsg('user', type.toUpperCase() + '.JPG', 'image');
             setTimeout(() => {
-                if (type === 'dni' && chatContext === 'KYC_DNI') {
-                    addMsg('bot', `✅ **DNI RECIBIDO**\nIA detectó: *MARCELO D., 24 Años*.\n\n**Paso 2:** Enviame la **Selfie** sosteniendo el documento.`);
-                    chatContext = 'KYC_SELFIE';
-                } else if (type === 'selfie' && chatContext === 'KYC_SELFIE') {
-                    addMsg('bot', `Iniciando match biométrico contra RENAPER...`, 'scanning');
-                    openVisionModal();
-                } else if (type === 'pago') {
-                    addMsg('bot', `🧾 **PAGO DETECTADO**\n\nValidando autenticidad... ¡Aprobado! Carga acreditada automáticamente. 🎉`);
-                    addLiveLog("Pago Validado: $10.000", "emerald");
-                }
+                if (type === 'dni' && chatContext === 'KYC_DNI') { addMsg('bot', `✅ **DNI RECIBIDO**\nIA detectó: *MARCELO D., 24 Años*.\n\n**Paso 2:** Enviame la **Selfie** sosteniendo el documento.`); chatContext = 'KYC_SELFIE'; }
+                else if (type === 'selfie' && chatContext === 'KYC_SELFIE') { addMsg('bot', `Iniciando match biométrico contra RENAPER...`, 'scanning'); openVisionModal(); }
+                else if (type === 'pago') { addMsg('bot', `🧾 **PAGO DETECTADO**\n\nValidando con MercadoPago API... ¡Aprobado! Carga acreditada. 🎉`); addLiveLog("Pago Validado: $10.000", "emerald"); }
             }, 1200);
         }
 
@@ -511,28 +448,26 @@
             const pr = document.getElementById('vision-progress');
             const sc = document.getElementById('match-score');
             const bt = document.getElementById('btn-vision-done');
-            setTimeout(() => {
-                if (pr) pr.style.width = '100%';
-                if (sc) sc.innerText = '98.4%';
-                setTimeout(() => { if (bt) { bt.innerText = "HABILITAR USUARIO"; bt.classList.remove('opacity-50', 'cursor-not-allowed'); bt.disabled = false; } }, 2000);
-            }, 200);
+            setTimeout(() => { if (pr) pr.style.width = '100%'; if (sc) sc.innerText = '98.4%'; setTimeout(() => { if (bt) { bt.innerText = "HABILITAR USUARIO"; bt.classList.remove('opacity-50', 'cursor-not-allowed'); bt.disabled = false; } }, 2000); }, 200);
         }
 
-        function finishVision() {
-            document.getElementById('vision-modal').classList.replace('flex', 'hidden');
-            addMsg('bot', `✨ **BIOMETRÍA OK**\n\n**Paso 3:** ¿Cuál es tu **Email**?`);
-            chatContext = 'KYC_EMAIL';
-        }
+        function finishVision() { document.getElementById('vision-modal').classList.replace('flex', 'hidden'); addMsg('bot', `✨ **BIOMETRÍA OK**\n\n**Paso 3:** ¿Cuál es tu **Email** para notificarte tus premios?`); chatContext = 'KYC_EMAIL'; }
 
-        // --- CRM CONTROLLER ---
+        // --- CRM ACTIONS ---
         function handleCRMAction(id, action) {
             const p = players.find(p => p.id === id);
-            if (p) {
-                if (action === 'approve') p.status = 'APROBADO';
-                if (action === 'reject') p.status = 'RECHAZADO';
-                addLiveLog(`CRM: Acción ${action} en ${p.name}`, action === 'approve' ? 'emerald' : 'red');
-                renderCRM();
-            }
+            if (!p) return;
+            if (action === 'approve') { p.status = 'APROBADO'; addLiveLog(`CRM: Cuenta ${id} activada vía MP`, "emerald"); }
+            if (action === 'delete') { players = players.filter(x => x.id !== id); addLiveLog(`CRM: Usuario ${id} eliminado`, "red"); }
+            if (action === 'pago') { p.balance += 10000; p.history += 10000; p.status = 'APROBADO'; addLiveLog(`CRM: Depósito $10k validado para ${id}`, "emerald"); }
+            if (action === 'retiro') { p.balance -= 5000; p.out += 5000; p.status = 'APROBADO'; addLiveLog(`CRM: Retiro $5k pagado vía API`, "emerald"); }
+            renderCRM();
+        }
+
+        function toggleDropdown(id) {
+            const el = document.getElementById('drop-' + id);
+            document.querySelectorAll('.dropdown-menu').forEach(d => { if (d !== el) d.classList.remove('show'); });
+            el.classList.toggle('show');
         }
 
         function renderCRM() {
@@ -542,30 +477,47 @@
                 let stClass = "bg-slate-100 text-slate-500 border-slate-200";
                 if (p.status === 'APROBADO') stClass = "bg-emerald-50 text-emerald-600 border-emerald-200";
                 if (p.status.includes('RETIRO')) stClass = "bg-rose-50 text-rose-600 border-rose-200 animate-pulse";
-                if (p.status === 'PENDIENTE') stClass = "bg-amber-50 text-amber-600 border-amber-200";
-
+                if (p.status.includes('DEPÓSITO') || p.status.includes('KYC')) stClass = "bg-amber-50 text-amber-600 border-amber-200";
+                
                 return `
-                <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition-all group">
+                <tr class="border-b border-slate-50 hover:bg-slate-50 transition-all">
                     <td class="p-8">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-14 h-14 bg-${p.color}-100 text-${p.color}-600 rounded-2xl flex items-center justify-center font-black shadow-inner group-hover:scale-110 transition-transform">${p.name[0]}</div>
+                        <div class="flex items-center space-x-5">
+                            <div class="w-14 h-14 bg-${p.color}-100 text-${p.color}-600 rounded-2xl flex items-center justify-center font-black shadow-inner">${p.name[0]}</div>
                             <div>
                                 <p class="font-black text-slate-800 text-lg leading-none">${p.name}</p>
-                                <p class="text-[9px] text-slate-400 font-bold uppercase mt-1.5 tracking-widest">${p.id} • PIN: ${p.pin}</p>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase mt-1.5 tracking-widest">${p.id} • ${p.lastOp}</p>
                             </div>
                         </div>
                     </td>
-                    <td class="p-8 text-sm text-slate-500 font-bold italic underline opacity-70">${p.email}</td>
+                    <td class="p-8 leading-tight">
+                        <p class="text-sm text-slate-500 font-bold italic underline opacity-70">${p.email}</p>
+                        <p class="text-[9px] text-slate-400 font-black uppercase mt-1">PIN SEGURIDAD: ${p.pin}</p>
+                    </td>
                     <td class="p-8 text-center">
                         <span class="px-5 py-2.5 rounded-xl text-[9px] font-black ${stClass} uppercase flex items-center justify-center w-fit mx-auto shadow-sm border">
                             <i class="fas fa-certificate mr-2"></i>${p.status}
                         </span>
                     </td>
-                    <td class="p-8 text-right font-black text-3xl text-slate-900 tracking-tighter italic leading-none">$${p.balance.toLocaleString()}</td>
-                    <td class="p-8 text-right">
+                    <td class="p-8 text-right font-bold text-xs tracking-tight">
+                        <p class="text-emerald-500">+$${(p.history || 0).toLocaleString()}</p>
+                        <p class="text-rose-400">-$${(p.out || 0).toLocaleString()}</p>
+                    </td>
+                    <td class="p-8 text-right font-black text-3xl text-slate-900 tracking-tighter italic leading-none">$${(p.balance || 0).toLocaleString()}</td>
+                    <td class="p-8 text-right relative">
                         <div class="flex justify-end space-x-2">
-                             ${p.status !== 'APROBADO' ? `<button onclick="handleCRMAction('${p.id}', 'approve')" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase hover:bg-emerald-600 shadow-md">Aprobar</button>` : ''}
-                             <button class="w-11 h-11 bg-slate-900 text-white rounded-xl hover:bg-blue-600 transition-colors shadow-lg"><i class="fas fa-ellipsis-v"></i></button>
+                             ${p.status.includes('DEPÓSITO') ? `<button onclick="handleCRMAction('${p.id}', 'pago')" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-emerald-500/20 active:scale-95">Validar Pago</button>` : ''}
+                             ${p.status.includes('RETIRO') ? `<button onclick="handleCRMAction('${p.id}', 'retiro')" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-rose-500/20 active:scale-95">Pagar Retiro</button>` : ''}
+                             ${p.status.includes('KYC') ? `<button onclick="handleCRMAction('${p.id}', 'approve')" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[9px] font-black uppercase shadow-lg active:scale-95">Aprobar KYC</button>` : ''}
+                             <div class="relative">
+                                <button onclick="toggleDropdown('${p.id}')" class="w-11 h-11 bg-slate-100 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"><i class="fas fa-ellipsis-v"></i></button>
+                                <div id="drop-${p.id}" class="dropdown-menu">
+                                    <div class="dropdown-item text-rose-500" onclick="handleCRMAction('${p.id}', 'delete')"><i class="fas fa-user-times"></i><span>Dar de baja</span></div>
+                                    <div class="dropdown-item" onclick="alert('Enviando WA...')"><i class="fab fa-whatsapp"></i><span>Enviar WA</span></div>
+                                    <div class="dropdown-item" onclick="alert('Enviando Mail...')"><i class="fas fa-envelope"></i><span>Enviar Mail</span></div>
+                                    <div class="dropdown-item" onclick="alert('Enviando SMS...')"><i class="fas fa-sms"></i><span>Enviar SMS</span></div>
+                                </div>
+                             </div>
                         </div>
                     </td>
                 </tr>
@@ -573,34 +525,28 @@
         }
 
         // --- DASHBOARD CHARTS ---
-        let finChart = null;
-        let kycChart = null;
-
+        let finC = null; let kycC = null;
         function initDashboardCharts() {
             const ctx1 = document.getElementById('finChart');
             const ctx2 = document.getElementById('kycChart');
             if (!ctx1 || !ctx2) return;
-            
-            if (finChart) finChart.destroy();
-            if (kycChart) kycChart.destroy();
-
-            finChart = new Chart(ctx1, {
+            if (finC) finC.destroy(); if (kycC) kycC.destroy();
+            finC = new Chart(ctx1, {
                 type: 'bar',
                 data: {
                     labels: ['S1', 'S2', 'S3', 'S4'],
                     datasets: [
-                        { label: 'Ingresos ($)', data: [450, 720, 980, 1245], backgroundColor: '#10b981', borderRadius: 10 },
-                        { label: 'Retiros ($)', data: [120, 310, 450, 412], backgroundColor: '#f43f5e', borderRadius: 10 }
+                        { label: 'In ($)', data: [450, 720, 980, 1245], backgroundColor: '#10b981', borderRadius: 12 },
+                        { label: 'Out ($)', data: [120, 310, 450, 412], backgroundColor: '#f43f5e', borderRadius: 12 }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
-
-            kycChart = new Chart(ctx2, {
+            kycC = new Chart(ctx2, {
                 type: 'line',
                 data: {
-                    labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
-                    datasets: [{ label: 'KYC Validados', data: [12, 18, 25, 42, 68, 120, 154], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, borderWidth: 6, pointRadius: 4 }]
+                    labels: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+                    datasets: [{ label: 'Altas', data: [12, 18, 25, 42, 68, 120, 154], borderColor: '#3b82f6', fill: true, tension: 0.4, borderWidth: 6, pointRadius: 4, backgroundColor: 'rgba(59, 130, 246, 0.05)' }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
@@ -611,18 +557,18 @@
             if (!feed) return;
             const div = document.createElement('div');
             const colorClass = color === 'emerald' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400';
-            div.className = `flex items-start space-x-4 p-5 rounded-[1.5rem] border ${colorClass} animate-fade-in shadow-sm`;
-            div.innerHTML = `<div class="mt-1.5"><i class="fas fa-bolt text-[10px]"></i></div><div class="flex-1"><p class="text-xs font-black uppercase tracking-tight leading-tight">${text}</p><p class="text-[9px] opacity-60 mt-1 uppercase font-bold">Monitor IA • Ahora</p></div>`;
+            div.className = `flex items-start space-x-3 p-4 rounded-[1.2rem] border ${colorClass} animate-fade-in mb-3 shadow-sm`;
+            div.innerHTML = `<div class="mt-1"><i class="fas fa-bolt text-[8px]"></i></div><div class="flex-1"><p class="font-bold uppercase tracking-tight leading-tight">${text}</p><p class="opacity-50 mt-1 uppercase text-[8px]">Audit: ${new Date().toLocaleTimeString()}</p></div>`;
             feed.prepend(div);
         }
 
         window.onload = () => {
+            const uInput = document.getElementById('user-input');
             addMsg('bot', botMainMsg, 'menu');
-            const uIn = document.getElementById('user-input');
-            if (uIn) uIn.addEventListener('keypress', (e) => { if (e.key === 'Enter') processInput(); });
-            addLiveLog("Sistema v4.2 Pro Sincronizado", "emerald");
-            addLiveLog("Base de Datos CRM Cargada", "emerald");
+            if (uInput) uInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') processInput(); });
+            addLiveLog("Sincronización v4.2 Pro Establecida", "emerald");
             renderCRM();
+            window.addEventListener('click', (e) => { if (!e.target.closest('.relative')) document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show')); });
         };
     </script>
 </body>
