@@ -3,7 +3,7 @@ const DB_KEY = 'integraltek_casino_v7';
 
 // Initial Data Structure
 const defaultData = {
-    config: { region: 'mx', theme: 'light' },
+    config: { region: 'es', theme: 'light' },
     user: { step: 'MENU', tempLogin: null, kycEmail: null, withdrawAmount: 0 },
     players: [
         { id: 101, name: "Matias G.", email: "matias@gmail.com", pin: "1234", balance: 45000, status: "VERIFIED", history: { in: 150000, out: 105000 } },
@@ -17,32 +17,32 @@ const defaultData = {
 
 // Region Configuration
 const regions = {
-    mx: {
-        flag: "🇲🇽", currency: "$", locale: "es-MX",
+    es: {
+        flag: "🇪🇸", currency: "$", locale: "es-AR", // Generic ES (Argentina Locale for Format)
         nav_chat: "Consola Chat", nav_crm: "CRM Jugadores", nav_dash: "Dashboard",
         status_online: "SISTEMA ACTIVO", title_agent: "Agente Operativo AI", ggr_label: "Profit Neto", reset_btn: "Resetear Sistema",
-        crm_title: "Gestión de Jugadores", crm_desc: "Control centralizado MX.",
+        crm_title: "Gestión de Jugadores", crm_desc: "Control centralizado ES.",
         th_player: "JUGADOR", th_contact: "DATOS", th_status: "ESTADO", th_balance: "BALANCE", th_actions: "ACCIONES",
         kpi_in: "Ingresos", kpi_out: "Retiros", chart_fin: "Flujo Financiero", chart_kyc: "Nuevos Registros",
-        drawer_title: "Adjuntar Documentación", lbl_doc: "INE / IFE", lbl_receipt: "Comprobante", btn_cancel: "CANCELAR",
+        drawer_title: "Adjuntar Documentación", lbl_doc: "DNI / ID", lbl_receipt: "Comprobante", btn_cancel: "CANCELAR",
         btn_pdf: "Reporte PDF",
         bot: {
-            welcome: "👋 ¡Hola! Soy tu asistente de **Casino MX**. ¿Qué necesitas?",
+            welcome: "👋 ¡Hola! Soy tu asistente de **Casino**. ¿Qué necesitas?",
             menu_recharge: "💰 Recargar", menu_balance: "📈 Saldo", menu_kyc: "🪪 Registro", menu_withdraw: "📤 Retirar",
             menu_faq: "❓ Ayuda", menu_report: "🚨 Reporte", menu_agent: "👤 Operador", menu_methods: "💳 Métodos",
-            ask_method: "📥 **Recarga MX**\n\nTransferí a la cuenta CLABE o por OXXO.\n\nSubí tu comprobante.",
+            ask_method: "📥 **Recarga**\n\nTransferí a la cuenta bancaria o billetera virtual.\n\nSubí tu comprobante.",
             ask_email_bal: "🔒 **Seguridad**\n\nIngresá tu **Email** registrado.",
-            ask_pin: "🔑 Ingresá tu **NIP/PIN** de 4 dígitos.",
-            balance_show: "💰 **Saldo en Pesos:**",
-            kyc_start: "📝 **Registro**\n\nNecesitamos validar tu **INE/IFE** (Frente).",
-            kyc_selfie: "✅ **INE OK**\n\nAhora una **Selfie** tuya.",
+            ask_pin: "🔑 Ingresá tu **PIN** de 4 dígitos.",
+            balance_show: "💰 **Saldo Disponible:**",
+            kyc_start: "📝 **Registro**\n\nNecesitamos validar tu **DNI** (Frente).",
+            kyc_selfie: "✅ **DNI OK**\n\nAhora una **Selfie** tuya.",
             kyc_email: "✅ **Biometría OK**\n\nIndicame tu **Email**.",
-            kyc_pin: "🔐 **NIP**\n\nCreá un PIN de 4 dígitos.",
+            kyc_pin: "🔐 **PIN**\n\nCreá un PIN de 4 dígitos.",
             kyc_done: "🎉 **¡Cuenta Lista!**\n\nEsperando validación.",
-            withdraw_amount: "💸 **Retiro**\n\n¿Cuánto querés retirar? (Mín $500 MXN)",
-            withdraw_cbu: "🏦 Indicame tu cuenta **CLABE** (18 dígitos).",
+            withdraw_amount: "💸 **Retiro**\n\n¿Cuánto querés retirar? (Mín $500)",
+            withdraw_cbu: "🏦 Indicame tu **CBU / Alias**.",
             withdraw_done: "⏳ **Procesando**\n\nTu retiro está en camino.",
-            error_pin: "❌ NIP incorrecto.",
+            error_pin: "❌ PIN incorrecto.",
             error_email: "❌ Email no existe.",
             fallback: "⚠️ No entendí. Usá el menú."
         }
@@ -195,9 +195,9 @@ function resetSystem() {
 
 // Format Money Helper
 function formatMoney(amount) {
-    const r = window.db ? window.db.config.region : 'mx';
+    const r = window.db ? window.db.config.region : 'es';
     const conf = regions[r];
-    return new Intl.NumberFormat(conf.locale, { style: 'currency', currency: conf.currency === '$' ? 'USD' : (conf.currency === 'R$' ? 'BRL' : 'MXN') }).format(amount);
+    return new Intl.NumberFormat(conf.locale, { style: 'currency', currency: conf.currency === '$' ? 'USD' : (conf.currency === 'R$' ? 'BRL' : 'ARS') }).format(amount);
 }
 
 // Initialize Global State
