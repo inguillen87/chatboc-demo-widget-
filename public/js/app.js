@@ -2,6 +2,9 @@ let chartInstances = {};
 
 // --- INITIALIZATION ---
 window.onload = () => {
+    // Override Default
+    window.db.config.region = 'es';
+
     applyTheme();
     setRegion(window.db.config.region);
 
@@ -63,17 +66,28 @@ function setRegion(r) {
 }
 
 function updateFinancials() {
-    // Mock Data for display
+    // Mock Data for display (Dynamic based on region to look realistic)
     const vals = {
-        mx: { in: 2450000, out: 850000, ggr: 1550000 },
-        us: { in: 125000, out: 42000, ggr: 83000 },
-        br: { in: 520000, out: 180000, ggr: 340000 }
+        es: { in: 2450000, out: 850000, ggr: 1550000, active: 1245, ticket: 450 },
+        us: { in: 125000, out: 42000, ggr: 83000, active: 312, ticket: 45 },
+        br: { in: 520000, out: 180000, ggr: 340000, active: 890, ticket: 120 }
     };
-    const v = vals[window.db.config.region];
-    document.getElementById('kpi-in-val').innerText = formatMoney(v.in);
-    document.getElementById('kpi-out-val').innerText = formatMoney(v.out);
-    document.getElementById('kpi-ggr-val').innerText = formatMoney(v.ggr);
-    document.getElementById('header-profit').innerText = formatMoney(v.ggr);
+    const v = vals[window.db.config.region] || vals.es;
+
+    // KPIs
+    const kpiIn = document.getElementById('kpi-in-val');
+    const kpiOut = document.getElementById('kpi-out-val');
+    const kpiGgr = document.getElementById('kpi-ggr-val');
+    const headerProfit = document.getElementById('header-profit');
+    const kpiUsers = document.getElementById('kpi-users-val');
+    const kpiTicket = document.getElementById('kpi-ticket-val');
+
+    if(kpiIn) kpiIn.innerText = formatMoney(v.in);
+    if(kpiOut) kpiOut.innerText = formatMoney(v.out);
+    if(kpiGgr) kpiGgr.innerText = formatMoney(v.ggr);
+    if(headerProfit) headerProfit.innerText = formatMoney(v.ggr);
+    if(kpiUsers) kpiUsers.innerText = v.active;
+    if(kpiTicket) kpiTicket.innerText = formatMoney(v.ticket);
 }
 
 function toggleTheme() {
@@ -358,10 +372,6 @@ async function renderCRM() {
     if(!tb) return;
     tb.innerHTML = '';
 
-    // In real app, we would await window.api.getPlayers()
-    // but db.js populates window.db.players so we use that for rendering speed
-    // Ideally: const players = await window.api.getPlayers();
-
     window.db.players.forEach(p => {
         let badge = '';
         let actions = '';
@@ -420,8 +430,6 @@ async function crmAction(id, type) {
         log(`Depósito aprobado: ${p.name}`, 'FINANCE');
     }
     if(type === 'APPROVE_WITHDRAW') {
-        // Assume deduction happened on request, or deduct now. Let's deduct now for simplicity if not already.
-        // Actually history has out.
         await window.api.updatePlayerStatus(id, 'VERIFIED');
         addBotBubble(`💸 Retiro de ${formatMoney(p.history.out)} procesado con éxito.`);
         log(`Retiro enviado a ${p.name}`, 'FINANCE');
@@ -453,21 +461,123 @@ function log(msg, type) {
 
 function initCharts() {
     const ctx1 = document.getElementById('chart-fin');
-    const ctx2 = document.getElementById('chart-users');
+    const ctx2 = document.getElementById('chart-pie');
     if (!ctx1 || !ctx2) return;
     if (chartInstances.c1) chartInstances.c1.destroy();
     if (chartInstances.c2) chartInstances.c2.destroy();
 
     const color = window.db.config.theme === 'dark' ? '#94a3b8' : '#475569';
-    chartInstances.c1 = new Chart(ctx1, { type: 'bar', data: { labels: ['M','T','W','T','F','S','S'], datasets: [{ label: 'In', data: [12, 19, 3, 5, 2, 3, 9], backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { display:false }, y: { display:false } }, plugins: { legend: { display: false } } } });
-    chartInstances.c2 = new Chart(ctx2, { type: 'line', data: { labels: ['W1','W2','W3','W4'], datasets: [{ label: 'Users', data: [5, 15, 10, 25], borderColor: '#3b82f6' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { display:false }, y: { display:false } }, plugins: { legend: { display: false } } } });
+
+    // Financial Chart
+    chartInstances.c1 = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: ['Lun','Mar','Mie','Jue','Vie','Sab','Dom'],
+            datasets: [
+                { label: 'In', data: [120, 190, 300, 500, 200, 300, 450], backgroundColor: '#10b981', borderRadius: 6 },
+                { label: 'Out', data: [80, 50, 100, 120, 80, 50, 20], backgroundColor: '#f43f5e', borderRadius: 6 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { display:false }, y: { display:false } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Pie Chart (New)
+    chartInstances.c2 = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+            labels: ['Slots', 'Live', 'Sports'],
+            datasets: [{
+                data: [65, 25, 10],
+                backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } },
+            cutout: '70%'
+        }
+    });
 }
 
 async function downloadPDF() {
+    // Generate PDF with jsPDF-AutoTable
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.text("INTEGRALTEK REPORT - " + window.db.config.region.toUpperCase(), 20, 20);
-    doc.save("Report.pdf");
+    const region = window.db.config.region.toUpperCase();
+    const date = new Date().toLocaleDateString();
+
+    // HEADER
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`INTEGRALTEK CASINO REPORT (${region})`, 15, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${date}`, 15, 26);
+
+    // SUMMARY
+    doc.setDrawColor(200);
+    doc.line(15, 30, 195, 30);
+
+    const kpiY = 40;
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text("FINANCIAL SUMMARY", 15, kpiY);
+
+    // Retrieve vals for PDF
+    const vals = {
+        es: { in: 2450000, out: 850000, ggr: 1550000 },
+        us: { in: 125000, out: 42000, ggr: 83000 },
+        br: { in: 520000, out: 180000, ggr: 340000 }
+    }[window.db.config.region];
+
+    doc.setFontSize(10);
+    doc.text(`Total Cash-In: ${formatMoney(vals.in)}`, 15, kpiY + 8);
+    doc.text(`Total Cash-Out: ${formatMoney(vals.out)}`, 15, kpiY + 14);
+    doc.text(`Net Profit (GGR): ${formatMoney(vals.ggr)}`, 15, kpiY + 20);
+    doc.text(`Active Players: ${window.db.players.length}`, 100, kpiY + 8);
+
+    // PLAYERS TABLE
+    doc.text("PLAYER ACTIVITY LOG", 15, kpiY + 35);
+
+    const tableBody = window.db.players.map(p => [
+        p.id,
+        p.name,
+        p.email,
+        p.status,
+        formatMoney(p.balance)
+    ]);
+
+    // Ensure AutoTable is available
+    if (doc.autoTable) {
+        doc.autoTable({
+            startY: kpiY + 40,
+            head: [['ID', 'Name', 'Email', 'Status', 'Balance']],
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [15, 23, 42] },
+            styles: { fontSize: 8 }
+        });
+    } else {
+        doc.text("Error: AutoTable plugin not loaded.", 15, kpiY + 50);
+    }
+
+    // FOOTER
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text('Integraltek AI System v7.3 - Confidential', 105, 290, null, null, "center");
+    }
+
+    doc.save(`Integraltek_Report_${region}_${Date.now()}.pdf`);
 }
 
 // Global View Switcher

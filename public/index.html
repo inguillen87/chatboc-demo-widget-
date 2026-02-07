@@ -20,6 +20,8 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Add AutoTable for PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <!-- Custom Styles -->
@@ -40,7 +42,7 @@
         </div>
 
         <div class="px-6 py-4 flex justify-between gap-1 border-b border-slate-800 overflow-x-auto">
-            <button onclick="setRegion('mx')" id="lang-mx" class="lang-btn active">🇲🇽 MX</button>
+            <button onclick="setRegion('es')" id="lang-es" class="lang-btn active">🇪🇸 ES</button>
             <button onclick="setRegion('br')" id="lang-br" class="lang-btn">🇧🇷 BR</button>
             <button onclick="setRegion('us')" id="lang-us" class="lang-btn">🇺🇸 US</button>
         </div>
@@ -244,47 +246,121 @@
             <div id="view-dashboard" class="absolute inset-0 bg-slate-50 dark:bg-slate-900 p-6 lg:p-12 overflow-y-auto hidden">
                 <div class="max-w-7xl mx-auto space-y-10">
 
-                    <div class="flex justify-end">
-                        <button onclick="downloadPDF()" class="bg-slate-900 text-white dark:bg-blue-600 px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition-all flex items-center gap-2">
-                            <i class="fas fa-file-pdf"></i> <span data-t="btn_pdf">Reporte PDF</span>
-                        </button>
+                    <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+                        <div>
+                            <h2 class="text-3xl font-black text-slate-800 dark:text-white tracking-tight leading-none">Dashboard Analytics</h2>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">Análisis de rendimiento y KPIs financieros.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <!-- Visual Date Picker -->
+                            <div class="hidden md:flex items-center gap-2 bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 text-xs font-bold shadow-sm">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Ultimos 30 días</span>
+                                <i class="fas fa-chevron-down opacity-50 ml-2"></i>
+                            </div>
+                            <button onclick="downloadPDF()" class="bg-slate-900 text-white dark:bg-blue-600 px-6 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-lg active:scale-95 transition-all flex items-center gap-2">
+                                <i class="fas fa-file-pdf"></i> <span data-t="btn_pdf">Reporte PDF</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="kpi-card bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between transition-transform hover:scale-[1.02]">
-                            <div class="flex justify-between items-start">
-                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest" data-t="kpi_in">Cash-In</p>
-                                <div class="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center"><i class="fas fa-arrow-down"></i></div>
-                            </div>
-                            <p class="text-4xl font-black text-slate-800 dark:text-white mt-4 tracking-tight" id="kpi-in-val">$2.4M</p>
-                        </div>
-                        <div class="kpi-card bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between transition-transform hover:scale-[1.02]">
-                            <div class="flex justify-between items-start">
-                                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest" data-t="kpi_out">Cash-Out</p>
-                                <div class="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-900/20 text-rose-500 flex items-center justify-center"><i class="fas fa-arrow-up"></i></div>
-                            </div>
-                            <p class="text-4xl font-black text-slate-800 dark:text-white mt-4 tracking-tight" id="kpi-out-val">$850k</p>
-                        </div>
-                        <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between text-white relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                    <!-- Row 1: KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Card 1: GGR -->
+                        <div class="bg-slate-900 p-8 rounded-[2rem] shadow-xl flex flex-col justify-between text-white relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-blue-500/30 transition-colors"></div>
                             <div class="flex justify-between items-start relative z-10">
-                                <p class="text-[11px] font-black text-blue-300 uppercase tracking-widest">GGR (Profit)</p>
-                                <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center"><i class="fas fa-wallet"></i></div>
+                                <p class="text-[10px] font-black text-blue-300 uppercase tracking-widest">GGR (Profit)</p>
+                                <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-xs"><i class="fas fa-wallet"></i></div>
                             </div>
-                            <p class="text-4xl font-black mt-4 tracking-tight relative z-10" id="kpi-ggr-val">$1.55M</p>
+                            <p class="text-3xl font-black mt-4 tracking-tight relative z-10" id="kpi-ggr-val">$1.55M</p>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold uppercase tracking-wide"><span class="text-emerald-400"><i class="fas fa-arrow-up"></i> 12%</span> vs mes anterior</p>
+                        </div>
+
+                        <!-- Card 2: Cash In -->
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest" data-t="kpi_in">Ingresos</p>
+                                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center text-xs"><i class="fas fa-arrow-down"></i></div>
+                            </div>
+                            <p class="text-3xl font-black text-slate-800 dark:text-white mt-4 tracking-tight" id="kpi-in-val">$2.4M</p>
+                            <p class="text-[9px] text-emerald-600 mt-2 font-bold uppercase tracking-wide">Volumen Alto</p>
+                        </div>
+
+                        <!-- Card 3: Active Users (New) -->
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jugadores Activos</p>
+                                <div class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center text-xs"><i class="fas fa-users"></i></div>
+                            </div>
+                            <p class="text-3xl font-black text-slate-800 dark:text-white mt-4 tracking-tight" id="kpi-users-val">1,245</p>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold uppercase tracking-wide"><span class="text-emerald-500">+85</span> esta semana</p>
+                        </div>
+
+                         <!-- Card 4: Avg Ticket (New) -->
+                         <div class="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ticket Promedio</p>
+                                <div class="w-8 h-8 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center text-xs"><i class="fas fa-receipt"></i></div>
+                            </div>
+                            <p class="text-3xl font-black text-slate-800 dark:text-white mt-4 tracking-tight" id="kpi-ticket-val">$450</p>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold uppercase tracking-wide">Estable</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-700">
-                            <h4 class="font-black text-slate-800 dark:text-white mb-8 text-lg uppercase tracking-tight" data-t="chart_fin">Flujo Financiero</h4>
-                            <div class="h-72"><canvas id="chart-fin"></canvas></div>
+                    <!-- Row 2: Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700 lg:col-span-2">
+                            <h4 class="font-black text-slate-800 dark:text-white mb-6 text-sm uppercase tracking-tight flex items-center gap-2"><i class="fas fa-chart-area text-blue-500"></i> <span data-t="chart_fin">Flujo Financiero</span></h4>
+                            <div class="h-64"><canvas id="chart-fin"></canvas></div>
                         </div>
-                        <div class="bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-700">
-                            <h4 class="font-black text-slate-800 dark:text-white mb-8 text-lg uppercase tracking-tight" data-t="chart_kyc">Nuevos Registros</h4>
-                            <div class="h-72"><canvas id="chart-users"></canvas></div>
+                        <div class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700">
+                             <h4 class="font-black text-slate-800 dark:text-white mb-6 text-sm uppercase tracking-tight flex items-center gap-2"><i class="fas fa-chart-pie text-purple-500"></i> Distribución</h4>
+                            <div class="h-64 flex items-center justify-center"><canvas id="chart-pie"></canvas></div>
                         </div>
                     </div>
+
+                    <!-- Row 3: Recent Activity Table (New) -->
+                    <div class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700">
+                        <h4 class="font-black text-slate-800 dark:text-white mb-6 text-sm uppercase tracking-tight flex items-center gap-2"><i class="fas fa-history text-slate-400"></i> Actividad Reciente</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left" id="activity-table">
+                                <thead class="border-b border-slate-100 dark:border-slate-700 text-[10px] uppercase font-bold text-slate-400 tracking-widest">
+                                    <tr>
+                                        <th class="pb-4 pl-2">Hora</th>
+                                        <th class="pb-4">Evento</th>
+                                        <th class="pb-4">Usuario</th>
+                                        <th class="pb-4 text-right">Monto</th>
+                                        <th class="pb-4 text-center">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-xs font-medium text-slate-600 dark:text-slate-300">
+                                    <tr class="border-b border-slate-50 dark:border-slate-800/50">
+                                        <td class="py-3 pl-2 opacity-70">10:42 AM</td>
+                                        <td class="py-3 font-bold text-emerald-500">Depósito</td>
+                                        <td class="py-3">Matias G.</td>
+                                        <td class="py-3 text-right font-bold">$5,000</td>
+                                        <td class="py-3 text-center"><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[9px] font-bold">EXITO</span></td>
+                                    </tr>
+                                    <tr class="border-b border-slate-50 dark:border-slate-800/50">
+                                        <td class="py-3 pl-2 opacity-70">10:38 AM</td>
+                                        <td class="py-3 font-bold text-blue-500">Registro</td>
+                                        <td class="py-3">Lucas P.</td>
+                                        <td class="py-3 text-right opacity-30">-</td>
+                                        <td class="py-3 text-center"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[9px] font-bold">KYC</span></td>
+                                    </tr>
+                                    <tr class="border-b border-slate-50 dark:border-slate-800/50">
+                                        <td class="py-3 pl-2 opacity-70">10:15 AM</td>
+                                        <td class="py-3 font-bold text-rose-500">Retiro</td>
+                                        <td class="py-3">Pedro S.</td>
+                                        <td class="py-3 text-right font-bold">$12,500</td>
+                                        <td class="py-3 text-center"><span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[9px] font-bold">PEND</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
