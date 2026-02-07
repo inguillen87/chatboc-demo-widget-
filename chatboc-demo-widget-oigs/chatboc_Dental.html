@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChatBoc Enterprise - Global Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        :root { --primary: #2563eb; --primary-dark: #1e40af; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; transition: background-color 0.3s; }
+        
+        /* --- IPHONE STYLES --- */
+        .iphone-frame {
+            background-color: #fff; border-radius: 48px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 12px #1a1a1a;
+            overflow: hidden; position: relative; height: 820px; width: 400px; margin: auto; border: 8px solid #1a1a1a;
+        }
+        .iphone-notch {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 160px; height: 28px; background-color: #1a1a1a;
+            border-bottom-left-radius: 18px; border-bottom-right-radius: 18px; z-index: 50;
+        }
+        
+        /* Chat UI */
+        .chat-bg { background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: #efeae2; }
+        .dark .chat-bg { background-color: #0b141a; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); opacity: 0.9; }
+        
+        .bubble-in { background-color: white; border-radius: 0px 16px 16px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .dark .bubble-in { background-color: #202c33; color: #e9edef; }
+        
+        .bubble-out { background-color: #d9fdd3; border-radius: 16px 0px 16px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .dark .bubble-out { background-color: #005c4b; color: #e9edef; }
+
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- DASHBOARD STYLES --- */
+        .sidebar-link { 
+            display: flex; align-items: center; gap: 12px; padding: 14px 16px; 
+            color: #64748b; font-weight: 600; transition: all 0.2s; border-radius: 12px; margin-bottom: 6px; text-align: left;
+        }
+        .dark .sidebar-link { color: #94a3b8; }
+        
+        .sidebar-link:hover { background-color: #f8fafc; color: #0f172a; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .dark .sidebar-link:hover { background-color: #1e293b; color: #fff; }
+        
+        .sidebar-link.active { background: linear-gradient(to right, #eff6ff, #ffffff); color: var(--primary); border-left: 4px solid var(--primary); }
+        .dark .sidebar-link.active { background: linear-gradient(to right, #1e293b, #0f172a); color: #60a5fa; border-left: 4px solid #60a5fa; }
+        
+        .hidden-view { display: none !important; }
+        
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #475569; }
+
+        /* Animations & Components */
+        .status-pulse { animation: pulse-soft 2s infinite; }
+        @keyframes pulse-soft { 0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); } 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); } }
+
+        .glass-card { 
+            background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); border-radius: 20px; transition: background-color 0.3s, border-color 0.3s;
+        }
+        .dark .glass-card { background: #1e293b; border-color: #334155; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3); }
+        
+        .btn-primary { background-color: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: 0.75rem; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
+        .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-1px); }
+
+        .filter-btn {
+            padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #64748b; transition: all 0.2s;
+        }
+        .dark .filter-btn { color: #94a3b8; }
+        
+        .filter-btn:hover { background-color: #f1f5f9; color: #0f172a; }
+        .dark .filter-btn:hover { background-color: #334155; color: #fff; }
+        
+        .filter-btn.active { background-color: #eff6ff; color: #2563eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .dark .filter-btn.active { background-color: #1e293b; color: #60a5fa; border: 1px solid #334155; }
+
+        /* Dark Mode Inputs */
+        .dark input, .dark select { background-color: #0f172a; border-color: #334155; color: white; }
+        .dark input::placeholder { color: #64748b; }
+        
+        /* Dark Mode Table */
+        .dark .border-b { border-color: #334155; }
+        .dark thead { background-color: #1e293b; }
+        .dark tbody tr:hover { background-color: #1e293b; }
+    </style>
+</head>
+<body class="flex flex-col lg:flex-row h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">
+
+    <!-- LEFT: CLIENT MOBILE SIMULATOR -->
+    <div class="w-full lg:w-1/3 bg-slate-900 flex items-center justify-center p-4 relative border-r border-slate-800">
+        <div class="iphone-frame flex flex-col shadow-2xl">
+            <div class="iphone-notch"></div>
+            <!-- Header -->
+            <div class="bg-[#008069] h-24 pt-8 px-4 flex items-center gap-3 text-white shrink-0 z-10 shadow-sm cursor-pointer" onclick="resetDemo()">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center relative overflow-hidden">
+                    <img src="https://img.freepik.com/free-photo/smiling-doctor-with-strethoscope-isolated-grey_651396-974.jpg" class="object-cover w-full h-full">
+                </div>
+                <div class="flex-1">
+                    <div class="font-semibold text-[15px]" id="whatsapp-clinic-name">Clínica Dental Premium</div>
+                    <div id="bot-status" class="text-xs text-white/80 flex items-center" data-key="online">En línea</div>
+                </div>
+            </div>
+            <!-- Chat -->
+            <div id="chat-container" class="flex-1 chat-bg p-4 overflow-y-auto custom-scroll space-y-3">
+                <div class="text-center text-[10px] text-slate-500 dark:text-slate-400 my-4 bg-[#ffeba0] dark:bg-[#2a2f32] border border-[#ffe07a] dark:border-[#2a2f32] text-yellow-800 dark:text-yellow-100 inline-block px-3 py-1 rounded-lg mx-auto shadow-sm" data-key="encrypted_msg">
+                    🔒 Mensajes cifrados de extremo a extremo.
+                </div>
+            </div>
+            <!-- Input -->
+            <div class="bg-[#f0f2f5] dark:bg-[#202c33] px-3 pb-6 pt-2 flex flex-col gap-2 shrink-0 z-20">
+                <div class="flex gap-2 overflow-x-auto p-1 custom-scroll" id="quick-replies"></div>
+                <div class="flex items-center gap-2">
+                    <div class="flex-1 bg-white dark:bg-[#2a3942] rounded-full h-10 px-4 flex items-center shadow-sm border border-slate-100 dark:border-transparent">
+                        <input type="text" id="user-input" class="w-full bg-transparent focus:outline-none text-slate-700 dark:text-white text-sm" placeholder="Mensaje..." autocomplete="off">
+                    </div>
+                    <button onclick="handleUserSend()" class="w-10 h-10 bg-[#008069] rounded-full text-white flex items-center justify-center hover:bg-[#006a57] transition-colors shadow-sm">
+                        <i class="fa-solid fa-paper-plane text-sm pl-0.5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: PROFESSIONAL DASHBOARD -->
+    <div class="w-full lg:w-2/3 flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+        
+        <!-- Navbar -->
+        <div class="h-20 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-slate-900 z-20 shadow-sm transition-colors duration-300">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200 dark:shadow-none">
+                    <i class="fa-solid fa-tooth text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-800 dark:text-white text-xl leading-tight">ChatBoc <span class="text-blue-600 dark:text-blue-400">Pro</span></h1>
+                    <span class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span> v11.0 (Global)
+                    </span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Language Selector -->
+                <select id="lang-selector" onchange="changeLanguage(this.value)" class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold py-1.5 px-2 rounded-lg border-none focus:ring-0 cursor-pointer">
+                    <option value="es">🇪🇸 ES</option>
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="pt">🇧🇷 PT</option>
+                </select>
+
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleTheme()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-yellow-400"></i>
+                </button>
+
+                <button onclick="clearLocalStorage()" class="text-xs font-medium text-slate-400 hover:text-red-500 transition-colors" data-key="reset">Resetear Todo</button>
+                <div class="flex items-center gap-3 pl-6 border-l border-slate-100 dark:border-slate-800">
+                    <div class="text-right hidden md:block">
+                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200" id="dash-prof-name">Dr. Roberto</p>
+                        <p class="text-xs text-slate-400" data-key="admin_role">Administrador</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-slate-100 border-2 border-white dark:border-slate-700 shadow-sm overflow-hidden">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <div class="w-20 lg:w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col p-6 transition-colors duration-300">
+                <nav class="space-y-2 flex-1">
+                    <button onclick="showView('recepcion')" id="nav-recepcion" class="sidebar-link active w-full">
+                        <i class="fa-solid fa-inbox w-5"></i> <span class="hidden lg:block" data-key="nav_reception">Recepción</span>
+                    </button>
+                    <button onclick="showView('agenda')" id="nav-agenda" class="sidebar-link w-full">
+                        <i class="fa-regular fa-calendar w-5"></i> <span class="hidden lg:block" data-key="nav_agenda">Agenda</span>
+                    </button>
+                    <button onclick="showView('pacientes')" id="nav-pacientes" class="sidebar-link w-full">
+                        <i class="fa-solid fa-user-group w-5"></i> <span class="hidden lg:block" data-key="nav_patients">Pacientes</span>
+                    </button>
+                    <button onclick="showView('reportes')" id="nav-reportes" class="sidebar-link w-full">
+                        <i class="fa-solid fa-chart-pie w-5"></i> <span class="hidden lg:block" data-key="nav_reports">Reportes</span>
+                    </button>
+                    <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button onclick="showView('config')" id="nav-config" class="sidebar-link w-full text-slate-500">
+                            <i class="fa-solid fa-gear w-5"></i> <span class="hidden lg:block" data-key="nav_config">Configuración</span>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 bg-slate-50 dark:bg-slate-950 overflow-hidden relative transition-colors duration-300">
+                
+                <!-- VIEW 1: RECEPCION -->
+                <div id="view-recepcion" class="h-full flex flex-col p-8 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800 dark:text-white" data-key="title_reception">Recepción</h2>
+                        <div class="bg-white dark:bg-slate-800 dark:border-slate-700 px-4 py-2 rounded-full border shadow-sm text-sm font-medium dark:text-slate-300" id="current-date-label">Martes 24 Oct</div>
+                    </div>
+                    <div class="flex flex-1 gap-6 overflow-hidden">
+                        <div class="w-1/3 flex flex-col gap-4 overflow-hidden h-full">
+                            <div class="flex-1 overflow-y-auto custom-scroll space-y-3" id="reception-list"></div>
+                        </div>
+                        <div class="flex-1 glass-card p-0 flex flex-col overflow-hidden relative" id="patient-detail-panel">
+                            <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600">
+                                <p data-key="select_patient">Selecciona un paciente</p>
+                            </div>
+                            <div id="active-state" class="w-full h-full flex flex-col hidden">
+                                <!-- Details injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: AGENDA -->
+                <div id="view-agenda" class="hidden-view h-full flex flex-col p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800 dark:text-white" data-key="title_agenda">Agenda</h2>
+                        <span class="px-4 text-sm font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 rounded border dark:border-slate-700 py-1" id="agenda-day-label">Martes</span>
+                    </div>
+                    <div class="flex-1 glass-card p-4 overflow-y-auto custom-scroll" id="global-agenda-grid"></div>
+                </div>
+
+                <!-- VIEW 3: PACIENTES -->
+                <div id="view-pacientes" class="hidden-view h-full flex flex-col p-8">
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6" data-key="title_patients">Pacientes</h2>
+                    <div class="flex-1 glass-card overflow-hidden">
+                        <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                            <thead class="bg-slate-50 dark:bg-slate-800 border-b dark:border-slate-700">
+                                <tr>
+                                    <th class="p-4" data-key="col_name">Nombre</th>
+                                    <th class="p-4" data-key="col_contact">Contacto</th>
+                                    <th class="p-4" data-key="col_status">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patients-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 4: REPORTES -->
+                <div id="view-reportes" class="hidden-view h-full flex flex-col p-8 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800 dark:text-white tracking-tight" data-key="title_reports">Rendimiento</h2>
+                            <p class="text-sm text-slate-500 dark:text-slate-400" data-key="subtitle_reports">Análisis detallado de operaciones.</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <!-- Time Filter -->
+                            <div class="bg-white dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 flex shadow-sm">
+                                <button onclick="setReportFilter('Diario')" id="filter-Diario" class="filter-btn" data-key="filter_day">Día</button>
+                                <button onclick="setReportFilter('Semanal')" id="filter-Semanal" class="filter-btn" data-key="filter_week">Semana</button>
+                                <button onclick="setReportFilter('Mensual')" id="filter-Mensual" class="filter-btn active" data-key="filter_month">Mes</button>
+                                <button onclick="setReportFilter('Anual')" id="filter-Anual" class="filter-btn" data-key="filter_year">Año</button>
+                            </div>
+                            <!-- Export -->
+                            <button onclick="downloadReportPDF()" class="btn-primary flex items-center gap-2 shadow-blue-500/20 shadow-lg">
+                                <i class="fa-solid fa-file-pdf"></i> <span data-key="btn_download">Descargar</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI CARDS -->
+                    <div class="grid grid-cols-3 gap-6 mb-8">
+                        <div class="glass-card p-6 border-l-4 border-blue-500 flex flex-col justify-between hover:shadow-lg transition-all bg-white dark:bg-slate-800">
+                            <div class="flex justify-between items-start mb-2">
+                                <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider" data-key="kpi_income">Ingresos Totales</p>
+                                <i class="fa-solid fa-chart-line text-blue-500 bg-blue-50 dark:bg-slate-700 p-2 rounded-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight" id="metric-ingresos">$2.4M</p>
+                                <p class="text-xs text-green-600 dark:text-green-400 font-bold mt-1 bg-green-50 dark:bg-green-900/30 inline-block px-2 py-0.5 rounded">↑ 12% vs prev</p>
+                            </div>
+                        </div>
+                        <div class="glass-card p-6 border-l-4 border-violet-500 flex flex-col justify-between hover:shadow-lg transition-all bg-white dark:bg-slate-800">
+                            <div class="flex justify-between items-start mb-2">
+                                <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider" data-key="kpi_appointments">Turnos Realizados</p>
+                                <i class="fa-solid fa-calendar-check text-violet-500 bg-violet-50 dark:bg-slate-700 p-2 rounded-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight" id="metric-turnos">145</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1" data-key="kpi_sub_appointments">Alta ocupación</p>
+                            </div>
+                        </div>
+                        <div class="glass-card p-6 border-l-4 border-emerald-500 flex flex-col justify-between hover:shadow-lg transition-all bg-white dark:bg-slate-800">
+                            <div class="flex justify-between items-start mb-2">
+                                <p class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider" data-key="kpi_patients">Pacientes Nuevos</p>
+                                <i class="fa-solid fa-user-plus text-emerald-500 bg-emerald-50 dark:bg-slate-700 p-2 rounded-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight" id="metric-nuevos">28</p>
+                                <p class="text-xs text-green-600 dark:text-green-400 font-bold mt-1 bg-green-50 dark:bg-green-900/30 inline-block px-2 py-0.5 rounded" data-key="kpi_sub_patients">Captación eficiente</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHARTS GRID -->
+                    <div class="grid grid-cols-3 gap-6 h-80 mb-6">
+                        <div class="col-span-2 glass-card p-6 flex flex-col bg-white dark:bg-slate-800">
+                            <h4 class="font-bold text-slate-700 dark:text-slate-200 mb-4" id="label-revenue-chart" data-key="chart_revenue">Tendencia de Ingresos</h4>
+                            <div class="flex-1 relative w-full"><canvas id="chartRevenue"></canvas></div>
+                        </div>
+                        <div class="glass-card p-6 flex flex-col bg-white dark:bg-slate-800">
+                            <h4 class="font-bold text-slate-700 dark:text-slate-200 mb-4" data-key="chart_treatments">Tratamientos Top</h4>
+                            <div class="flex-1 relative w-full flex items-center justify-center"><canvas id="chartTreatments"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 5: CONFIGURACIÓN -->
+                <div id="view-config" class="hidden-view h-full flex flex-col p-8 overflow-y-auto">
+                    <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-2" data-key="title_config">Configuración</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-6" data-key="subtitle_config">Personaliza tu perfil y conecta servicios.</p>
+                    
+                    <div class="grid grid-cols-1 gap-8 mt-4">
+                        <!-- Integraciones -->
+                        <div class="glass-card p-6 mb-2">
+                            <h3 class="font-bold text-slate-800 dark:text-white mb-4 border-b dark:border-slate-700 pb-2" data-key="sec_integrations">Integraciones</h3>
+                            <div class="space-y-4">
+                                <!-- Google Calendar -->
+                                <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" class="w-6">
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-700 dark:text-slate-200 text-sm">Google Calendar</p>
+                                            <p class="text-xs text-green-600 flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> <span data-key="status_synced">Sincronizado</span></p>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs font-medium text-slate-500 border dark:border-slate-600 px-3 py-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm dark:text-slate-300" data-key="btn_config">Configurar</button>
+                                </div>
+
+                                <!-- WhatsApp -->
+                                <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-sm text-white">
+                                            <i class="fa-brands fa-whatsapp text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-700 dark:text-slate-200 text-sm">WhatsApp Business API</p>
+                                            <p class="text-xs text-green-600 flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> <span data-key="status_online">En línea</span></p>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs font-medium text-slate-500 border dark:border-slate-600 px-3 py-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors bg-white dark:bg-slate-800 shadow-sm dark:text-slate-300" data-key="btn_status">Ver Estado</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-8">
+                            <!-- Perfil -->
+                            <div class="glass-card p-6 h-full">
+                                <h3 class="font-bold text-slate-800 dark:text-white mb-4 border-b dark:border-slate-700 pb-2" data-key="sec_profile">Perfil Profesional</h3>
+                                <div class="space-y-4">
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider" data-key="lbl_doctor">Doctor/a</label><input type="text" id="conf-doc-name" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all" onchange="saveConfig()"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider" data-key="lbl_clinic">Clínica</label><input type="text" id="conf-clinic-name" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all" onchange="saveConfig()"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Precios -->
+                            <div class="glass-card p-6 h-full">
+                                <div class="flex justify-between items-center mb-4 border-b dark:border-slate-700 pb-2">
+                                    <h3 class="font-bold text-slate-800 dark:text-white" data-key="sec_prices">Precios</h3>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1" data-key="srv_consult">Consulta</label><input type="number" id="conf-price-consulta" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" onchange="saveConfig()"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1" data-key="srv_cleaning">Limpieza</label><input type="number" id="conf-price-limpieza" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" onchange="saveConfig()"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1" data-key="srv_whitening">Blanqueamiento</label><input type="number" id="conf-price-blanqueamiento" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" onchange="saveConfig()"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1" data-key="srv_ortho">Ortodoncia</label><input type="number" id="conf-price-ortodoncia" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" onchange="saveConfig()"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1" data-key="srv_urgency">Urgencia</label><input type="number" id="conf-price-urgencia" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" onchange="saveConfig()"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1" data-key="srv_extraction">Extracción</label><input type="number" id="conf-price-extraccion" class="w-full border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" onchange="saveConfig()"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // --- TRANSLATIONS (i18n) ---
+        const translations = {
+            es: {
+                nav_reception: "Recepción", nav_agenda: "Agenda", nav_patients: "Pacientes", nav_reports: "Reportes", nav_config: "Configuración",
+                title_reception: "Recepción", title_agenda: "Agenda", title_patients: "Pacientes", title_reports: "Rendimiento", title_config: "Configuración",
+                subtitle_reports: "Análisis detallado de operaciones.", subtitle_config: "Personaliza tu perfil y conecta servicios.",
+                kpi_income: "Ingresos Totales", kpi_appointments: "Turnos Realizados", kpi_patients: "Pacientes Nuevos",
+                kpi_sub_appointments: "Alta ocupación", kpi_sub_patients: "Captación eficiente",
+                chart_revenue: "Tendencia de Ingresos", chart_treatments: "Tratamientos Top",
+                col_name: "Nombre", col_contact: "Contacto", col_status: "Estado",
+                filter_day: "Día", filter_week: "Semana", filter_month: "Mes", filter_year: "Año",
+                btn_download: "Descargar", btn_config: "Configurar", btn_status: "Ver Estado",
+                sec_integrations: "Integraciones", sec_profile: "Perfil Profesional", sec_prices: "Servicios y Precios",
+                lbl_doctor: "Doctor/a", lbl_clinic: "Clínica",
+                status_synced: "Sincronizado", status_online: "En línea",
+                srv_consult: "Consulta", srv_cleaning: "Limpieza", srv_whitening: "Blanqueamiento", srv_ortho: "Ortodoncia", srv_urgency: "Urgencia", srv_extraction: "Extracción",
+                online: "En línea", encrypted_msg: "Mensajes cifrados de extremo a extremo.", select_patient: "Selecciona un paciente",
+                admin_role: "Administrador", reset: "Resetear Todo",
+                bot: {
+                    welcome: "¡Hola! 👋 Bienvenido a",
+                    ask_name: "Soy tu asistente. ¿Cuál es tu nombre?",
+                    welcome_back: "¡Hola de nuevo",
+                    nice_meet: "¡Un gusto",
+                    registered: "Ya te registré en nuestro sistema.",
+                    help_options: "Ahora sí, ¿en qué puedo ayudarte? ¿Querés un turno, ver precios o avisar que llegaste?",
+                    email_invalid: "Email inválido. Intenta de nuevo.",
+                    price_list: "📋 **Lista de Precios Actualizada:**",
+                    schedule_ask: "¿Te agendo alguno?",
+                    arrival_ack: "¡Perfecto! Ya avisé al sistema.",
+                    sit_down: "Tomá asiento, te llaman en breve.",
+                    looking_slot: "Dale, busquemos lugar para",
+                    have_slot: "Tengo el Martes a las 10:00.",
+                    reserved_email: "Reservado. Para confirmar, ¿me pasás tu email?",
+                    confirmed: "✅ Turno confirmado para el Martes 10:00.",
+                    fallback: "No entendí bien. ¿Turnos, Precios o Llegaste?",
+                    call_doctor: "👨‍⚕️ *Doctor:* Pasá al consultorio, por favor."
+                },
+                currency: "$"
+            },
+            en: {
+                nav_reception: "Reception", nav_agenda: "Schedule", nav_patients: "Patients", nav_reports: "Reports", nav_config: "Settings",
+                title_reception: "Reception", title_agenda: "Schedule", title_patients: "Patients", title_reports: "Performance", title_config: "Settings",
+                subtitle_reports: "Detailed operational analysis.", subtitle_config: "Customize profile and connect services.",
+                kpi_income: "Total Revenue", kpi_appointments: "Completed Visits", kpi_patients: "New Patients",
+                kpi_sub_appointments: "High occupancy", kpi_sub_patients: "Efficient acquisition",
+                chart_revenue: "Revenue Trend", chart_treatments: "Top Treatments",
+                col_name: "Name", col_contact: "Contact", col_status: "Status",
+                filter_day: "Day", filter_week: "Week", filter_month: "Month", filter_year: "Year",
+                btn_download: "Download", btn_config: "Configure", btn_status: "Check Status",
+                sec_integrations: "Integrations", sec_profile: "Professional Profile", sec_prices: "Services & Prices",
+                lbl_doctor: "Doctor", lbl_clinic: "Clinic",
+                status_synced: "Synced", status_online: "Online",
+                srv_consult: "Consultation", srv_cleaning: "Cleaning", srv_whitening: "Whitening", srv_ortho: "Orthodontics", srv_urgency: "Urgency", srv_extraction: "Extraction",
+                online: "Online", encrypted_msg: "End-to-end encrypted messages.", select_patient: "Select a patient",
+                admin_role: "Admin", reset: "Reset All",
+                bot: {
+                    welcome: "Hello! 👋 Welcome to",
+                    ask_name: "I am your assistant. What is your name?",
+                    welcome_back: "Welcome back",
+                    nice_meet: "Nice to meet you",
+                    registered: "I have registered you in our system.",
+                    help_options: "How can I help? Book appointment, see prices, or check-in?",
+                    email_invalid: "Invalid email. Try again.",
+                    price_list: "📋 **Current Price List:**",
+                    schedule_ask: "Shall I book one for you?",
+                    arrival_ack: "Perfect! I've notified the system.",
+                    sit_down: "Please have a seat, you'll be called shortly.",
+                    looking_slot: "Okay, let's find a slot for",
+                    have_slot: "I have Tuesday at 10:00.",
+                    reserved_email: "Reserved. To confirm, please provide your email.",
+                    confirmed: "✅ Appointment confirmed for Tuesday 10:00.",
+                    fallback: "I didn't understand. Appointments, Prices, or Arrived?",
+                    call_doctor: "👨‍⚕️ *Doctor:* Please come to the office."
+                },
+                currency: "USD"
+            },
+            pt: {
+                nav_reception: "Recepção", nav_agenda: "Agenda", nav_patients: "Pacientes", nav_reports: "Relatórios", nav_config: "Configurações",
+                title_reception: "Recepção", title_agenda: "Agenda", title_patients: "Pacientes", title_reports: "Desempenho", title_config: "Configurações",
+                subtitle_reports: "Análise operacional detalhada.", subtitle_config: "Personalize perfil e conecte serviços.",
+                kpi_income: "Receita Total", kpi_appointments: "Consultas Realizadas", kpi_patients: "Novos Pacientes",
+                kpi_sub_appointments: "Alta ocupação", kpi_sub_patients: "Captação eficiente",
+                chart_revenue: "Tendência de Receita", chart_treatments: "Principais Tratamentos",
+                col_name: "Nome", col_contact: "Contato", col_status: "Status",
+                filter_day: "Dia", filter_week: "Semana", filter_month: "Mês", filter_year: "Ano",
+                btn_download: "Baixar", btn_config: "Configurar", btn_status: "Ver Status",
+                sec_integrations: "Integrações", sec_profile: "Perfil Profissional", sec_prices: "Serviços e Preços",
+                lbl_doctor: "Doutor(a)", lbl_clinic: "Clínica",
+                status_synced: "Sincronizado", status_online: "Online",
+                srv_consult: "Consulta", srv_cleaning: "Limpeza", srv_whitening: "Clareamento", srv_ortho: "Ortodontia", srv_urgency: "Urgência", srv_extraction: "Extração",
+                online: "Online", encrypted_msg: "Mensagens criptografadas de ponta a ponta.", select_patient: "Selecione um paciente",
+                admin_role: "Administrador", reset: "Resetar Tudo",
+                bot: {
+                    welcome: "Olá! 👋 Bem-vindo à",
+                    ask_name: "Sou seu assistente. Qual é o seu nome?",
+                    welcome_back: "Olá novamente",
+                    nice_meet: "Prazer",
+                    registered: "Já te registrei em nosso sistema.",
+                    help_options: "Como posso ajudar? Agendar, ver preços ou avisar que chegou?",
+                    email_invalid: "Email inválido. Tente novamente.",
+                    price_list: "📋 **Lista de Preços Atualizada:**",
+                    schedule_ask: "Posso agendar algum?",
+                    arrival_ack: "Perfeito! Já avisei o sistema.",
+                    sit_down: "Por favor, sente-se, você será chamado em breve.",
+                    looking_slot: "Ok, vamos procurar um horário para",
+                    have_slot: "Tenho terça-feira às 10:00.",
+                    reserved_email: "Reservado. Para confirmar, me passe seu email?",
+                    confirmed: "✅ Consulta confirmada para Terça 10:00.",
+                    fallback: "Não entendi. Agendar, Preços ou Chegou?",
+                    call_doctor: "👨‍⚕️ *Doutor:* Por favor, venha ao consultório."
+                },
+                currency: "R$"
+            }
+        };
+
+        // --- 1. LOCAL STORAGE & CONFIG MANAGER ---
+        const DB_KEY = 'chatboc_db_v11_global'; 
+        
+        const defaultData = {
+            config: {
+                docName: "Dr. Roberto",
+                clinicName: "Clínica Dental Premium",
+                prices: { 
+                    limpieza: 25000, 
+                    blanqueamiento: 50000, 
+                    consulta: 15000,
+                    ortodoncia: 80000,
+                    urgencia: 30000,
+                    extraccion: 40000
+                },
+                theme: 'light',
+                lang: 'es'
+            },
+            user: { name: null, email: null },
+            appointments: [
+                { id: 1, day: "martes", time: "09:00", name: "Ana Gómez", reason: "Ortodoncia", status: "finished" }
+            ],
+            patients: [
+                { id: 101, name: "Ana Gómez", phone: "+54911...", email: "ana@gmail.com", status: "Active" }
+            ],
+            chatHistory: [],
+            context: { lastAction: 'none' }
+        };
+
+        function loadData() {
+            const stored = localStorage.getItem(DB_KEY);
+            return stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(defaultData));
+        }
+
+        function saveData(data) {
+            localStorage.setItem(DB_KEY, JSON.stringify(data));
+            // No renderAll here to avoid loop if called from render
+        }
+
+        function clearLocalStorage() {
+            if(confirm('¿Reiniciar todo el sistema? / Reset System?')) {
+                localStorage.removeItem(DB_KEY);
+                location.reload();
+            }
+        }
+
+        let db = loadData();
+        let selectedApptId = null;
+        let currentReportPeriod = "Mensual";
+
+        // --- I18N LOGIC ---
+        function changeLanguage(lang) {
+            db.config.lang = lang;
+            saveData(db);
+            applyTranslations();
+            loadConfigUI(); // Refresh config labels
+            updateMetrics(); // Refresh metrics format
+            initCharts(); // Refresh chart tooltips (if advanced)
+        }
+
+        function applyTranslations() {
+            const t = translations[db.config.lang];
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if(t[key]) el.innerText = t[key];
+            });
+            
+            // Special cases
+            document.getElementById('lang-selector').value = db.config.lang;
+        }
+
+        // --- THEME LOGIC ---
+        function initTheme() {
+            const theme = db.config.theme || 'light';
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            db.config.theme = isDark ? 'dark' : 'light';
+            saveData(db);
+        }
+
+        // --- REPORT DATA SIMULATION ---
+        const reportData = {
+            'Diario': {
+                metrics: { turnos: '8', facturacion: 180000, nuevos: '2' },
+                labels: ['09:00', '11:00', '13:00', '15:00', '17:00'],
+                revenueData: [20, 45, 15, 60, 40]
+            },
+            'Semanal': {
+                metrics: { turnos: '42', facturacion: 850000, nuevos: '8' },
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
+                revenueData: [120, 180, 150, 200, 100]
+            },
+            'Mensual': {
+                metrics: { turnos: '145', facturacion: 2400000, nuevos: '28' },
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                revenueData: [550, 620, 580, 650]
+            },
+            'Anual': {
+                metrics: { turnos: '1,850', facturacion: 32000000, nuevos: '340' },
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                revenueData: [2.1, 2.3, 2.5, 2.4, 2.8, 3.0]
+            }
+        };
+
+        function formatCurrency(amount) {
+            const lang = db.config.lang;
+            const currency = translations[lang].currency;
+            if(lang === 'en') return currency + " " + (amount / 1000).toFixed(1) + "k";
+            return currency + " " + amount.toLocaleString(lang === 'pt' ? 'pt-BR' : 'es-AR');
+        }
+
+        function setReportFilter(period) {
+            currentReportPeriod = period;
+            ['Diario', 'Semanal', 'Mensual', 'Anual'].forEach(p => {
+                const btn = document.getElementById('filter-'+p);
+                if(btn) {
+                    if(p === period) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+            updateMetrics();
+            initCharts();
+        }
+
+        function updateMetrics() {
+            const data = reportData[currentReportPeriod].metrics;
+            document.getElementById('metric-turnos').innerText = data.turnos;
+            document.getElementById('metric-ingresos').innerText = formatCurrency(data.facturacion);
+            document.getElementById('metric-nuevos').innerText = data.nuevos;
+        }
+
+        // --- 2. CONFIG LOGIC ---
+        function loadConfigUI() {
+            const c = db.config;
+            document.getElementById('conf-doc-name').value = c.docName;
+            document.getElementById('conf-clinic-name').value = c.clinicName;
+            
+            document.getElementById('conf-price-limpieza').value = c.prices.limpieza;
+            document.getElementById('conf-price-consulta').value = c.prices.consulta;
+            document.getElementById('conf-price-blanqueamiento').value = c.prices.blanqueamiento;
+            document.getElementById('conf-price-ortodoncia').value = c.prices.ortodoncia;
+            document.getElementById('conf-price-urgencia').value = c.prices.urgencia;
+            document.getElementById('conf-price-extraccion').value = c.prices.extraccion;
+
+            document.getElementById('dash-prof-name').innerText = c.docName;
+            document.getElementById('whatsapp-clinic-name').innerText = c.clinicName;
+        }
+
+        function saveConfig() {
+            db.config.docName = document.getElementById('conf-doc-name').value;
+            db.config.clinicName = document.getElementById('conf-clinic-name').value;
+            
+            db.config.prices.limpieza = parseInt(document.getElementById('conf-price-limpieza').value) || 0;
+            db.config.prices.consulta = parseInt(document.getElementById('conf-price-consulta').value) || 0;
+            db.config.prices.blanqueamiento = parseInt(document.getElementById('conf-price-blanqueamiento').value) || 0;
+            db.config.prices.ortodoncia = parseInt(document.getElementById('conf-price-ortodoncia').value) || 0;
+            db.config.prices.urgencia = parseInt(document.getElementById('conf-price-urgencia').value) || 0;
+            db.config.prices.extraccion = parseInt(document.getElementById('conf-price-extraccion').value) || 0;
+
+            saveData(db);
+            loadConfigUI();
+            alert(db.config.lang === 'en' ? "Settings saved." : (db.config.lang === 'pt' ? "Configurações salvas." : "Configuración guardada."));
+        }
+
+        // --- 3. CHAT BOT (AI) ---
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const botStatus = document.getElementById('bot-status');
+        const quickReplies = document.getElementById('quick-replies');
+
+        function normalize(str) { return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+
+        window.onload = () => {
+            initTheme();
+            applyTranslations(); // Init Lang
+            loadConfigUI();
+            if (db.chatHistory.length === 0) {
+                const t = translations[db.config.lang].bot;
+                if (!db.user.name) {
+                    setTimeout(() => addBotMessage(`${t.welcome} ${db.config.clinicName}.`), 800);
+                    setTimeout(() => addBotMessage(t.ask_name), 1500);
+                } else {
+                    setTimeout(() => addBotMessage(`${t.welcome_back}, ${db.user.name}!`), 1000);
+                }
+            } else {
+                db.chatHistory.forEach(msg => renderMessage(msg.text, msg.sender === 'bot', false));
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            renderAll();
+        };
+
+        function handleUserSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            addMessageToUI(text, true);
+            saveChat(text, 'user');
+            userInput.value = '';
+            setQuickReplies([]);
+            botTyping(() => processAI(text));
+        }
+
+        function processAI(rawText) {
+            const text = normalize(rawText);
+            const t = translations[db.config.lang].bot;
+            const lang = db.config.lang;
+
+            // ONBOARDING
+            if (!db.user.name) {
+                let name = rawText.replace(/hola|soy|me llamo|mi nombre es|hi|i am|my name is|ola|meu nome e/gi, '').trim();
+                name = name.charAt(0).toUpperCase() + name.slice(1);
+                if (name.length < 2) name = rawText.trim();
+                db.user.name = name;
+                saveData(db);
+                addBotMessage(`${t.nice_meet}, ${name}! 😊`);
+                setTimeout(() => {
+                    addBotMessage(t.help_options);
+                    // Quick replies based on lang
+                    if(lang === 'en') setQuickReplies(['Book Appointment', 'See Prices', 'Check-in']);
+                    else if(lang === 'pt') setQuickReplies(['Agendar', 'Ver Preços', 'Cheguei']);
+                    else setQuickReplies(['Quiero turno', 'Ver precios', 'Llegué']);
+                }, 800);
+                return;
+            }
+
+            if (db.context.lastAction === 'waiting_email') {
+                if (text.includes('@')) {
+                    db.user.email = rawText.trim();
+                    const pending = db.context.pendingAppointment;
+                    if(pending) {
+                        db.appointments.push({ id: Date.now(), day: pending.day, time: pending.time, name: db.user.name, reason: pending.reason, status: "scheduled" });
+                        db.patients.push({ id: Date.now(), name: db.user.name, phone: "...", email: db.user.email, status: "Active" });
+                        db.context = { lastAction: 'booked' };
+                        saveData(db);
+                        addBotMessage(t.confirmed.replace('Tuesday 10:00', `${pending.day} ${pending.time}`));
+                    }
+                } else {
+                    addBotMessage(t.email_invalid);
+                }
+                return;
+            }
+
+            if (text.includes('precio') || text.includes('cuanto') || text.includes('sale') || text.includes('price') || text.includes('cost') || text.includes('quanto') || text.includes('valor')) {
+                const p = db.config.prices;
+                const cur = translations[lang].currency;
+                const fmt = (n) => cur + " " + n.toLocaleString();
+                
+                addBotMessage(t.price_list);
+                let priceList = `🔹 ${translations[lang].srv_consult}: ${fmt(p.consulta)}\n🔹 ${translations[lang].srv_cleaning}: ${fmt(p.limpieza)}`;
+                
+                addBotMessage(priceList);
+                setTimeout(() => addBotMessage(t.schedule_ask), 800);
+                return;
+            }
+
+            if (text.includes('llegu') || text.includes('sala') || text.includes('arriv') || text.includes('here') || text.includes('cheguei')) {
+                addBotMessage(t.arrival_ack);
+                let appt = db.appointments.find(a => a.name === db.user.name && a.day === 'martes');
+                if(!appt) {
+                    appt = { id: Date.now(), day: 'martes', time: 'Ahora', name: db.user.name, reason: 'Urgencia', status: 'waiting' };
+                    db.appointments.push(appt);
+                } else {
+                    appt.status = 'waiting';
+                }
+                saveData(db);
+                selectedApptId = appt.id; 
+                setTimeout(() => addBotMessage(t.sit_down), 1000);
+                return;
+            }
+
+            // Booking Flow (Simplified for Multi-lang Demo)
+            if (text.includes('turno') || text.includes('agendar') || text.includes('book') || text.includes('appointment')) {
+                let service = translations[lang].srv_consult;
+                db.context = { lastAction: 'booking_flow', pendingService: service };
+                saveData(db);
+                addBotMessage(`${t.looking_slot} **${service}**. ${t.have_slot}`);
+                setQuickReplies(['OK', '10:00']);
+                return;
+            }
+
+            if (text.includes('10') || text.includes('ok') || text.includes('yes') || text.includes('sim')) {
+                if(!db.user.email) {
+                    db.context.lastAction = 'waiting_email';
+                    db.context.pendingAppointment = { day: 'martes', time: '10:00', reason: db.context.pendingService || 'Consulta' };
+                    saveData(db);
+                    addBotMessage(t.reserved_email);
+                } else {
+                    db.appointments.push({ id: Date.now(), day: 'martes', time: '10:00', name: db.user.name, reason: db.context.pendingService || 'Consulta', status: 'scheduled' });
+                    db.context = { lastAction: 'booked' };
+                    saveData(db);
+                    addBotMessage(t.confirmed);
+                }
+                return;
+            }
+
+            addBotMessage(t.fallback);
+        }
+
+        // --- RENDERERS ---
+        function renderAll() {
+            renderReception();
+            renderAgenda();
+            renderPatients();
+        }
+
+        function renderReception() {
+            const list = document.getElementById('reception-list');
+            list.innerHTML = '';
+            const appts = db.appointments.filter(a => a.day === 'martes');
+            appts.forEach(a => {
+                let statusClass = 'border-l-4 border-slate-300';
+                let statusText = 'Agendado';
+                let pulse = '';
+                if(a.status === 'waiting') { statusClass = 'border-l-4 border-yellow-400 bg-yellow-50'; statusText = 'En Sala'; pulse = 'status-pulse'; }
+                if(a.status === 'in_consult') { statusClass = 'border-l-4 border-green-500 bg-green-50'; statusText = 'En Atención'; }
+                const el = document.createElement('div');
+                el.className = `p-3 rounded-lg bg-white dark:bg-slate-800 shadow-sm cursor-pointer ${statusClass} ${pulse} hover:shadow-md transition-all border dark:border-slate-700`;
+                el.innerHTML = `<div class="flex justify-between font-bold text-slate-700 dark:text-slate-200"><span>${a.time}</span><span class="text-xs bg-white dark:bg-slate-700 px-2 py-0.5 rounded border dark:border-slate-600">${statusText}</span></div><div class="text-slate-600 dark:text-slate-300">${a.name}</div><div class="text-xs text-slate-500 dark:text-slate-400">${a.reason}</div>`;
+                el.onclick = () => showDetail(a);
+                list.appendChild(el);
+                if(selectedApptId === a.id) showDetail(a);
+            });
+        }
+
+        function showDetail(a) {
+            selectedApptId = a.id;
+            document.getElementById('empty-state').classList.add('hidden');
+            const panel = document.getElementById('active-state');
+            panel.classList.remove('hidden');
+            
+            // Localize status
+            let stText = a.status;
+            if(stText === 'waiting') stText = db.config.lang === 'en' ? 'Waiting' : (db.config.lang === 'pt' ? 'Aguardando' : 'En Sala');
+            
+            panel.innerHTML = `
+                <div class="text-center pt-8">
+                    <div class="w-20 h-20 bg-blue-600 text-white rounded-full mx-auto flex items-center justify-center text-2xl font-bold mb-3">${a.name.charAt(0)}</div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-white">${a.name}</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">${translations[db.config.lang].srv_consult}: ${a.reason}</p>
+                    ${a.status === 'waiting' ? `<div class="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg mb-4 text-left border border-yellow-200 dark:border-yellow-700/50"><i class="fa-solid fa-bell text-yellow-600 dark:text-yellow-400 mr-2 animate-bounce"></i> <span class="font-bold text-yellow-800 dark:text-yellow-200">${stText}</span></div><button onclick="setStatus(${a.id}, 'in_consult')" class="w-full btn-primary py-3 shadow-lg shadow-blue-500/30">CALL PATIENT</button>` : ''}
+                    ${a.status === 'scheduled' ? `<button onclick="setStatus(${a.id}, 'waiting')" class="w-full border py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-slate-600 dark:text-slate-300 dark:border-slate-600">Check-In</button>` : ''}
+                    ${a.status === 'in_consult' ? `<div class="w-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 font-bold py-3 rounded-lg">Active</div>` : ''}
+                </div>
+            `;
+        }
+
+        function setStatus(id, st) {
+            const a = db.appointments.find(ap => ap.id === id);
+            if(a) { 
+                a.status = st; 
+                saveData(db); 
+                if(st === 'in_consult') addBotMessage(translations[db.config.lang].bot.call_doctor);
+            }
+        }
+
+        function renderAgenda() {
+            const container = document.getElementById('global-agenda-grid');
+            let html = '';
+            ["09:00", "10:00", "11:00", "12:00", "13:00"].forEach(h => {
+                const slot = db.appointments.find(a => a.time === h && a.day === 'martes');
+                html += `<div class="flex border-b border-slate-100 dark:border-slate-800 h-20"><div class="w-20 p-2 text-xs text-slate-400 border-r border-slate-100 dark:border-slate-800 text-right pt-4">${h}</div><div class="flex-1 p-2">${slot ? `<div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 p-2 rounded text-xs font-bold text-blue-700 dark:text-blue-300">${slot.name}</div>` : ''}</div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderPatients() {
+            const tb = document.getElementById('patients-table-body');
+            tb.innerHTML = db.patients.map(p => `<tr class="border-b border-slate-100 dark:border-slate-700"><td class="p-4 font-bold text-slate-700 dark:text-slate-200">${p.name}</td><td class="p-4 text-xs text-slate-500 dark:text-slate-400">${p.email || '-'}</td><td class="p-4 text-green-600 dark:text-green-400 font-bold text-xs">${p.status}</td></tr>`).join('');
+        }
+
+        // --- UTILS ---
+        function addMessageToUI(text, isSender) {
+            const div = document.createElement('div');
+            div.className = `flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in mb-3`;
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[85%] p-3 text-[14px] leading-snug shadow-sm relative ${isSender ? 'bubble-out text-slate-800' : 'bubble-in text-slate-800 dark:text-white'}`;
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+            div.appendChild(bubble);
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        function saveChat(text, sender) { db.chatHistory.push({ text, sender, time: Date.now() }); saveData(db); }
+        function addBotMessage(text) { addMessageToUI(text, false); saveChat(text, 'bot'); }
+        function renderMessage(text, isBot) { addMessageToUI(text, !isBot); }
+        function botTyping(cb) { botStatus.innerText = "Typing..."; setTimeout(() => { botStatus.innerText = "Online"; cb(); }, 800); }
+        function setQuickReplies(opts) {
+            quickReplies.innerHTML = '';
+            opts.forEach(t => {
+                const b = document.createElement('button');
+                b.className = "whitespace-nowrap bg-white dark:bg-[#2a3942] text-[#008069] dark:text-[#00a884] border border-[#008069]/20 dark:border-[#00a884]/30 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm mr-2";
+                b.innerText = t;
+                b.onclick = () => { userInput.value = t; handleUserSend(); };
+                quickReplies.appendChild(b);
+            });
+        }
+        function showView(id) {
+            ['recepcion', 'agenda', 'pacientes', 'reportes', 'config'].forEach(v => {
+                document.getElementById('view-'+v).classList.add('hidden-view');
+                document.getElementById('nav-'+v).classList.remove('active');
+            });
+            document.getElementById('view-'+id).classList.remove('hidden-view');
+            document.getElementById('nav-'+id).classList.add('active');
+            if(id === 'reportes') { setReportFilter('Mensual'); }
+        }
+        
+        // --- CHARTS & PDF ---
+        let revenueChart = null;
+        let treatmentChart = null;
+
+        function initCharts() {
+            const ctxRev = document.getElementById('chartRevenue');
+            const ctxTreat = document.getElementById('chartTreatments');
+            if(!ctxRev || !ctxTreat) return;
+
+            if(revenueChart) revenueChart.destroy();
+            if(treatmentChart) treatmentChart.destroy();
+
+            const data = reportData[currentReportPeriod];
+
+            revenueChart = new Chart(ctxRev, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: data.revenueData,
+                        borderColor: '#2563eb',
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+                            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
+                            gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+                            return gradient;
+                        },
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+            });
+
+            treatmentChart = new Chart(ctxTreat, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ortodoncia', 'Limpieza', 'Consulta'],
+                    datasets: [{ data: [45, 30, 25], backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6'], borderWidth: 0 }]
+                },
+                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right' } } }
+            });
+        }
+
+        async function downloadReportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const data = reportData[currentReportPeriod];
+            
+            // Header
+            doc.setFillColor(37, 99, 235); doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.setFont("helvetica", "bold");
+            doc.text(`REPORT ${currentReportPeriod.toUpperCase()}`, 20, 25);
+            
+            // Metrics
+            doc.setTextColor(0, 0, 0); doc.setFontSize(14); doc.text("Executive Summary", 20, 60);
+            doc.setFontSize(12); doc.setTextColor(100);
+            doc.text(`Visits: ${data.metrics.turnos}`, 20, 75);
+            doc.text(`Revenue: ${data.metrics.facturacion}`, 80, 75);
+            doc.text(`New Patients: ${data.metrics.nuevos}`, 140, 75);
+
+            // Chart Image
+            if(revenueChart) {
+                const img = revenueChart.toBase64Image();
+                doc.addImage(img, 'PNG', 20, 90, 170, 80);
+            }
+
+            doc.save(`Report_${currentReportPeriod}.pdf`);
+        }
+
+        function resetDemo() { clearLocalStorage(); }
+
+        document.getElementById('user-input').addEventListener('keypress', (e) => { if(e.key==='Enter') handleUserSend(); });
+    </script>
+</body>
+</html>

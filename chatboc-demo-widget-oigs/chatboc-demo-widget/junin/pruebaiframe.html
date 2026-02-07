@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chatboc.ar iframe</title>
+  <link rel="icon" href="https://chatboc-demo-widget-oigs.vercel.app/juniogo.ico" type="image/x-icon" />
+  <style>
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+<iframe
+  id="chatboc-iframe"
+  style="position:fixed; bottom:20px; right:20px; border:none; border-radius:50%; z-index:9999; box-shadow:0 4px 32px rgba(0,0,0,0.2); background:transparent; overflow:hidden; width:80px; height:80px; display:block; transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease;"
+  allow="clipboard-write; geolocation"
+  loading="lazy"
+  title="Chatboc Widget"
+></iframe>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  window.APP_TARGET = 'municipio';
+  var chatIframe = document.getElementById('chatboc-iframe');
+
+  const LOGO_URL = 'junilogo.png';
+
+  const params = new URLSearchParams({
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE3NTY0OTc3Mjd9.W3gDsifYhmyPCzPL-2TApBQL-Yid8khAth03VRJdipM',
+    tipo_chat: 'municipio',
+    primary_color: '#006C3F',
+    accent_color: '#d4a01a',
+    logo_url: LOGO_URL,
+    icon_url: LOGO_URL,
+    logo_animation: 'spin 8s linear infinite',
+    icon_animation: 'spin 8s linear infinite',
+    welcome_title: '¡Hola! Soy JUNI',
+    welcome_subtitle: 'Asistente Virtual de Junín',
+    header_icon_color: '#FFFFFF',
+    welcome_title_color: '#FFFFFF',
+    welcome_subtitle_color: '#FFFFFF',
+    theme: 'light'
+  });
+  chatIframe.src = 'https://www.chatboc.ar/iframe?' + params.toString();
+
+  window.addEventListener('message', function (event) {
+    if (event.origin !== 'https://www.chatboc.ar') return;
+
+    if (event.data && event.data.type === 'chatboc-state-change') {
+      if (event.data.dimensions) {
+        chatIframe.style.width = event.data.dimensions.width || '460px';
+        chatIframe.style.height = event.data.dimensions.height || '680px';
+      }
+      chatIframe.style.borderRadius = event.data.isOpen ? '16px' : '50%';
+    }
+  });
+});
+</script>
+</body>
+</html>
