@@ -158,11 +158,32 @@ function sendMessage() {
     setTimeout(() => { hideTyping(); processLogic(text); }, 800);
 }
 
+// --- NLP ENGINE ---
+function detectIntent(text) {
+    const lower = text.toLowerCase();
+
+    const intents = {
+        'REGISTER': ['crear usuario', 'crear cuenta', 'registrarme', 'registro', 'nuevo usuario', 'alta', 'sign up', 'register', 'cadastrar', 'conta nova'],
+        'RECHARGE': ['cargar saldo', 'recargar', 'depositar', 'ingresar dinero', 'transferir', 'deposit', 'add funds', 'recharge', 'depósito'],
+        'WITHDRAW': ['retirar', 'sacar plata', 'sacar dinero', 'cobrar', 'retiro', 'withdraw', 'cash out', 'sacar'],
+        'BALANCE': ['saldo', 'cuánto tengo', 'mi cuenta', 'ver plata', 'balance', 'money'],
+        'HELP': ['ayuda', 'no entiendo', 'soporte', 'help', 'ajuda']
+    };
+
+    for (const [key, keywords] of Object.entries(intents)) {
+        if (keywords.some(k => lower.includes(k))) {
+            return key;
+        }
+    }
+    return null;
+}
+
 async function processLogic(text) {
     const t = regions[window.db.config.region].bot;
     const lower = text.toLowerCase();
 
-    if (['menu', 'hola', 'hi', 'olá', 'inicio', 'home'].some(w => lower.includes(w))) {
+    // 1. Check for Reset/Menu commands
+    if (['menu', 'hola', 'hi', 'olá', 'inicio', 'home', 'volver'].some(w => lower.includes(w))) {
         window.db.user.step = 'MENU';
         window.db.user.intent = 'MENU';
         showMenu();
@@ -170,12 +191,22 @@ async function processLogic(text) {
         return;
     }
 
+    // 2. Logic based on current step
     switch (window.db.user.step) {
-        case 'MENU': botMessage(t.fallback); break;
+        case 'MENU':
+            // Try NLP detection
+            const intent = detectIntent(text);
+            if (intent) {
+                handleOption(intent);
+            } else {
+                // Smart Fallback
+                botMessage("🤖 Entiendo que querés operar, pero soy una IA en entrenamiento. \n\nPodés escribir:\n🔹 *\"Quiero cargar saldo\"*\n🔹 *\"Necesito registrarme\"*\n🔹 *\"Retirar dinero\"*\n\nO usá el menú de abajo. 👇");
+            }
+            break;
 
         case 'WAIT_PROOF':
-            if (text.includes('foto') || text.includes('.jpg')) {
-                botMessage("✅ OK. Validando...");
+            if (text.includes('foto') || text.includes('.jpg') || lower.includes('listo') || lower.includes('ya envie')) {
+                botMessage("✅ OK. Validando comprobante...");
                 setTimeout(() => {
                     botMessage("🎉 + " + formatMoney(5000));
                     window.db.user.step = 'MENU';
@@ -201,17 +232,17 @@ async function processLogic(text) {
             break;
 
         case 'WAIT_DNI':
-            if (text.includes('.jpg')) {
+            if (text.includes('.jpg') || lower.includes('adjunto') || lower.includes('listo')) {
                 botMessage(t.kyc_selfie);
                 window.db.user.step = 'WAIT_KYC_SELFIE';
-            } else { botMessage("📷 ID/DNI?"); }
+            } else { botMessage("📷 Por favor, subí la foto de tu **DNI / ID**."); }
             break;
 
         case 'WAIT_KYC_SELFIE':
-            if (text.includes('.jpg')) {
+            if (text.includes('.jpg') || lower.includes('listo')) {
                 botMessage("Scanning...");
                 openVisionModal();
-            } else { botMessage("📷 Selfie?"); }
+            } else { botMessage("📷 Ahora necesito una **Selfie** tuya."); }
             break;
 
         case 'WAIT_KYC_EMAIL':
@@ -219,7 +250,7 @@ async function processLogic(text) {
                 window.db.user.kycEmail = text;
                 botMessage(t.kyc_pin);
                 window.db.user.step = 'WAIT_KYC_PIN';
-            } else { botMessage("Email?"); }
+            } else { botMessage("📧 Necesito un **Email** válido."); }
             break;
 
         case 'WAIT_KYC_PIN':
@@ -230,7 +261,7 @@ async function processLogic(text) {
 
                 renderCRM();
                 resetToMenu(2000);
-            } else { botMessage("PIN 4 #?"); }
+            } else { botMessage("🔒 El PIN debe tener **4 dígitos**."); }
             break;
 
          case 'WAIT_WITHDRAW_AMOUNT':
@@ -252,6 +283,7 @@ async function processLogic(text) {
 
 function botMessage(text) {
     let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    html = html.replace(/\n/g, '<br>'); // Handle newlines
     addBotBubble(html);
 }
 
