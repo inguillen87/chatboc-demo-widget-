@@ -2,11 +2,11 @@ let chartInstances = {};
 
 // --- INITIALIZATION ---
 window.onload = () => {
-    // Override Default
-    window.db.config.region = 'es';
-
     applyTheme();
-    setRegion(window.db.config.region);
+    setRegion(window.db.config.region || 'es');
+
+    // Check Identity
+    identifyUser();
 
     // Event Listeners
     const chatInput = document.getElementById('chat-input');
@@ -16,31 +16,38 @@ window.onload = () => {
         });
     }
 
-    // Populate Audit Log
-    const logBox = document.getElementById('audit-log');
-    if (logBox) {
-        const logs = [
-            "Bot: Respondido FAQ a user #8821",
-            "System: Backup completado",
-            "VisionCore: DNI validado 98% match",
-            "Payment: Depósito $5000 recibido",
-            "System: Server health 99.9%"
-        ];
-        logs.forEach(l => {
-            const p = document.createElement('div');
-            p.className = "text-[10px] border-l-2 pl-2 border-slate-600 text-slate-300 font-mono";
-            p.innerHTML = `<span class="opacity-50 mr-2">${new Date().toLocaleTimeString()}</span> ${l}`;
-            logBox.appendChild(p);
-        });
-    }
+    // Live Loop (Simulate Real-time updates)
+    setInterval(() => {
+        renderCRM();
+        updateFinancials();
+    }, 5000);
 };
+
+// --- IDENTITY & SESSION ---
+let currentUser = null;
+
+async function identifyUser() {
+    currentUser = await window.api.identifyUser();
+    if(currentUser) {
+        const r = window.db.config.region;
+        const t = regions[r].bot;
+        const feed = document.getElementById('chat-feed');
+        if(feed && feed.children.length === 0) {
+            // XSS Safe: sanitize name
+            const safeName = window.escapeHTML(currentUser.firstName);
+            botMessage(t.welcome_known.replace("{name}", safeName));
+            showMenu();
+        }
+    } else {
+        showMenu();
+    }
+}
 
 // --- REGION & THEME ---
 function setRegion(r) {
     window.db.config.region = r;
     window.api.saveState();
 
-    // UI Button State
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
     const btn = document.getElementById('lang-'+r);
     if(btn) btn.classList.add('active');
@@ -52,42 +59,39 @@ function setRegion(r) {
         if(dict[k]) el.innerText = dict[k];
     });
 
-    // Update Formatters
     updateFinancials();
-
-    // Reset Chat Context if at menu
-    if(window.db.user.step === 'MENU') {
-        const feed = document.getElementById('chat-feed');
-        if(feed) feed.innerHTML = '';
-        showMenu();
-    }
     renderCRM();
     initCharts();
+
+    // Refresh Menu text if visible
+    const feed = document.getElementById('chat-feed');
+    if(feed && window.db.flowState.step === 'MENU') {
+        feed.innerHTML = '';
+        showMenu();
+    }
 }
 
 function updateFinancials() {
-    // Mock Data for display (Dynamic based on region to look realistic)
-    const vals = {
-        es: { in: 2450000, out: 850000, ggr: 1550000, active: 1245, ticket: 450 },
-        us: { in: 125000, out: 42000, ggr: 83000, active: 312, ticket: 45 },
-        br: { in: 520000, out: 180000, ggr: 340000, active: 890, ticket: 120 }
-    };
-    const v = vals[window.db.config.region] || vals.es;
+    let totalIn = 0, totalOut = 0;
+    let activeCount = window.db.players.length;
 
-    // KPIs
+    window.db.players.forEach(p => {
+        totalIn += p.history.in;
+        totalOut += p.history.out;
+    });
+    const ggr = totalIn - totalOut;
+
     const kpiIn = document.getElementById('kpi-in-val');
     const kpiOut = document.getElementById('kpi-out-val');
     const kpiGgr = document.getElementById('kpi-ggr-val');
     const headerProfit = document.getElementById('header-profit');
     const kpiUsers = document.getElementById('kpi-users-val');
-    const kpiTicket = document.getElementById('kpi-ticket-val');
 
-    if(kpiIn) kpiIn.innerText = formatMoney(v.in);
-    if(kpiOut) kpiOut.innerText = formatMoney(v.out);
-    if(kpiGgr) kpiGgr.innerText = formatMoney(v.ggr);
-    if(headerProfit) headerProfit.innerText = formatMoney(v.ggr);
-    if(kpiUsers) kpiUsers.innerText = v.active;
-    if(kpiTicket) kpiTicket.innerText = formatMoney(v.ticket);
+    if(kpiIn) kpiIn.innerText = formatMoney(totalIn);
+    if(kpiOut) kpiOut.innerText = formatMoney(totalOut);
+    if(kpiGgr) kpiGgr.innerText = formatMoney(ggr);
+    if(headerProfit) headerProfit.innerText = formatMoney(ggr);
+    if(kpiUsers) kpiUsers.innerText = activeCount;
 }
 
 function toggleTheme() {
@@ -104,9 +108,10 @@ function applyTheme() {
 
 // --- BOT LOGIC ---
 function showMenu() {
-    const t = regions[window.db.config.region].bot;
+    const r = window.db.config.region;
+    const t = regions[r].bot;
+
     const html = `
-        <div class="mb-3 font-medium">${t.welcome}</div>
         <div class="wa-options">
             <div class="grid grid-cols-2 gap-2">
                 <button onclick="handleOption('RECHARGE')" class="wa-btn">${t.menu_recharge}</button>
@@ -126,321 +131,330 @@ function showMenu() {
 }
 
 function handleOption(opt) {
-    const t = regions[window.db.config.region].bot;
-    window.db.user.intent = opt;
+    const r = window.db.config.region;
+    const t = regions[r].bot;
+    window.db.flowState.step = opt;
 
-    if (opt === 'RECHARGE') {
-        window.db.user.step = 'WAIT_PROOF';
-        addBotBubble(t.ask_method);
-    } else if (opt === 'BALANCE') {
-        window.db.user.step = 'WAIT_EMAIL_LOGIN';
-        addBotBubble(t.ask_email_bal);
-    } else if (opt === 'REGISTER') {
-        window.db.user.step = 'WAIT_DNI';
-        addBotBubble(t.kyc_start);
-    } else if (opt === 'WITHDRAW') {
-        window.db.user.step = 'WAIT_WITHDRAW_AMOUNT';
-        addBotBubble(t.withdraw_amount);
-    } else {
+    if (['RECHARGE', 'WITHDRAW', 'BALANCE'].includes(opt) && !currentUser) {
+        // Fallback to Spanish default if translation missing (safety)
+        const msg = (r === 'es') ? "⚠️ No estás registrado." : (r === 'br' ? "⚠️ Não registrado." : "⚠️ Not registered.");
+        botMessage(msg);
+        window.db.flowState.step = 'REGISTER';
+        handleOption('REGISTER');
+        return;
+    }
+
+    if (opt === 'REGISTER') {
+        if(currentUser) {
+            const safeUser = window.escapeHTML(currentUser.username);
+            const msg = (r === 'es') ? `✅ Ya estás registrado como **${safeUser}**.` : (r === 'br' ? `✅ Registrado como **${safeUser}**.` : `✅ Registered as **${safeUser}**.`);
+            botMessage(msg);
+            resetToMenu();
+        } else {
+            window.db.flowState.step = 'REG_NAME';
+            window.db.flowState.tempData = {};
+            addBotBubble(t.reg_start);
+        }
+    }
+    else if (opt === 'RECHARGE') {
+        window.db.flowState.step = 'DEPO_AMOUNT';
+        addBotBubble(t.dep_amount);
+    }
+    else if (opt === 'BALANCE') {
+        // Safe formatting handled by formatMoney
+        botMessage(`${t.balance_show} **${formatMoney(currentUser.balance)}**`);
+        resetToMenu();
+    }
+    else if (opt === 'WITHDRAW') {
+        window.db.flowState.step = 'WITH_AMOUNT';
+        addBotBubble(t.with_amount);
+    }
+    else {
         addBotBubble("ℹ️ " + opt);
         resetToMenu();
     }
-    window.api.saveState();
 }
 
 function sendMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
     if (!text) return;
-    addBubble(text, 'user');
+
+    // Sanitize user input before displaying
+    const safeText = window.escapeHTML(text);
+    addBubble(safeText, 'user');
+
     input.value = '';
     showTyping();
-    setTimeout(() => { hideTyping(); processLogic(text); }, 800);
+    setTimeout(() => { hideTyping(); processLogic(text); }, 800); // Pass raw text to logic
 }
 
-// --- NLP ENGINE ---
+// --- NLP & STATE MACHINE ---
 function detectIntent(text) {
     const lower = text.toLowerCase();
-
     const intents = {
-        'REGISTER': ['crear usuario', 'crear cuenta', 'registrarme', 'registro', 'nuevo usuario', 'alta', 'sign up', 'register', 'cadastrar', 'conta nova'],
-        'RECHARGE': ['cargar saldo', 'recargar', 'depositar', 'ingresar dinero', 'transferir', 'deposit', 'add funds', 'recharge', 'depósito'],
-        'WITHDRAW': ['retirar', 'sacar plata', 'sacar dinero', 'cobrar', 'retiro', 'withdraw', 'cash out', 'sacar'],
-        'BALANCE': ['saldo', 'cuánto tengo', 'mi cuenta', 'ver plata', 'balance', 'money'],
-        'HELP': ['ayuda', 'no entiendo', 'soporte', 'help', 'ajuda']
+        'REGISTER': ['crear usuario', 'registrarme', 'registro', 'nuevo', 'sign up', 'register', 'cadastrar'],
+        'RECHARGE': ['cargar', 'depositar', 'ingresar', 'transferir', 'deposit', 'deposito'],
+        'WITHDRAW': ['retirar', 'sacar', 'cobrar', 'retiro', 'withdraw', 'cash out', 'saque'],
+        'BALANCE': ['saldo', 'cuánto tengo', 'mi cuenta', 'balance']
     };
-
     for (const [key, keywords] of Object.entries(intents)) {
-        if (keywords.some(k => lower.includes(k))) {
-            return key;
-        }
+        if (keywords.some(k => lower.includes(k))) return key;
     }
     return null;
 }
 
 async function processLogic(text) {
-    const t = regions[window.db.config.region].bot;
+    const r = window.db.config.region;
+    const t = regions[r].bot;
+    const step = window.db.flowState.step;
     const lower = text.toLowerCase();
 
-    // 1. Check for Reset/Menu commands
-    if (['menu', 'hola', 'hi', 'olá', 'inicio', 'home', 'volver'].some(w => lower.includes(w))) {
-        window.db.user.step = 'MENU';
-        window.db.user.intent = 'MENU';
-        showMenu();
-        window.api.saveState();
+    if (['menu', 'inicio', 'cancelar', 'home', 'cancel'].includes(lower)) {
+        resetToMenu();
         return;
     }
 
-    // 2. Logic based on current step
-    switch (window.db.user.step) {
+    switch (step) {
         case 'MENU':
-            // Try NLP detection
             const intent = detectIntent(text);
-            if (intent) {
-                handleOption(intent);
-            } else {
-                // Smart Fallback
-                botMessage("🤖 Entiendo que querés operar, pero soy una IA en entrenamiento. \n\nPodés escribir:\n🔹 *\"Quiero cargar saldo\"*\n🔹 *\"Necesito registrarme\"*\n🔹 *\"Retirar dinero\"*\n\nO usá el menú de abajo. 👇");
-            }
+            if (intent) handleOption(intent);
+            else botMessage(t.smart_fallback || t.fallback);
             break;
 
-        case 'WAIT_PROOF':
-            if (text.includes('foto') || text.includes('.jpg') || lower.includes('listo') || lower.includes('ya envie')) {
-                botMessage("✅ OK. Validando comprobante...");
+        // --- REGISTRATION FLOW ---
+        case 'REG_NAME':
+            window.db.flowState.tempData.firstName = text; // Keep raw for DB
+            window.db.flowState.step = 'REG_SURNAME';
+            botMessage(t.reg_surname);
+            break;
+        case 'REG_SURNAME':
+            window.db.flowState.tempData.lastName = text;
+            window.db.flowState.step = 'REG_USER';
+            botMessage(t.reg_user);
+            break;
+        case 'REG_USER':
+            window.db.flowState.tempData.username = text;
+            window.db.flowState.step = 'REG_EMAIL';
+            botMessage(t.reg_email);
+            break;
+        case 'REG_EMAIL':
+            if(text.includes('@')) {
+                window.db.flowState.tempData.email = text;
+                window.db.flowState.step = 'REG_PIN';
+                botMessage(t.reg_pin);
+            } else botMessage("⚠️ Email invalid.");
+            break;
+        case 'REG_PIN':
+            if(text.length === 4) {
+                window.db.flowState.tempData.pin = text;
+                currentUser = await window.api.registerUser(window.db.flowState.tempData);
+                botMessage(t.reg_done);
                 setTimeout(() => {
-                    botMessage("🎉 + " + formatMoney(5000));
-                    window.db.user.step = 'MENU';
-                    setTimeout(showMenu, 1000);
-                }, 2000);
-            } else { botMessage("📎 " + t.ask_method); }
+                    botMessage(t.reg_kyc);
+                    window.db.flowState.step = 'REG_KYC_DNI';
+                }, 1500);
+            } else botMessage("⚠️ 4 digits.");
             break;
 
-        case 'WAIT_EMAIL_LOGIN':
-            const u = window.db.players.find(p => p.email.toLowerCase() === text.toLowerCase());
-            if(u) {
-                window.db.user.tempLogin = u;
-                window.db.user.step = 'WAIT_PIN_LOGIN';
-                addBotBubble(t.ask_pin);
-            } else { addBotBubble(t.error_email); }
+        case 'REG_KYC_DNI':
+            if(text.includes('.jpg')) handleAttachment('doc');
+            else botMessage("📎 Upload Photo.");
             break;
 
-        case 'WAIT_PIN_LOGIN':
-            if(window.db.user.tempLogin && window.db.user.tempLogin.pin === text) {
-                addBotBubble(`${t.balance_show} **${formatMoney(window.db.user.tempLogin.balance)}**`);
-                resetToMenu();
-            } else { addBotBubble(t.error_pin); }
+        case 'REG_KYC_SELFIE':
+             if(text.includes('.jpg')) handleAttachment('camera');
+            else botMessage("📎 Upload Selfie.");
             break;
 
-        case 'WAIT_DNI':
-            if (text.includes('.jpg') || lower.includes('adjunto') || lower.includes('listo')) {
-                botMessage(t.kyc_selfie);
-                window.db.user.step = 'WAIT_KYC_SELFIE';
-            } else { botMessage("📷 Por favor, subí la foto de tu **DNI / ID**."); }
+        // --- DEPOSIT FLOW ---
+        case 'DEPO_AMOUNT':
+            const amount = parseFloat(text.replace(/[^0-9.]/g, ''));
+            if(amount > 0) {
+                window.db.flowState.tempData.amount = amount;
+                const bonus = amount > 5000 ? (amount * 0.10) : 0;
+                let msg = t.dep_receipt;
+                if(bonus > 0) {
+                    const bonusMsg = (r === 'es') ? `🔥 **¡Bonus Detectado!**` : (r === 'br' ? `🔥 **Bônus Detectado!**` : `🔥 **Bonus Detected!**`);
+                    msg = `${bonusMsg}\n\nTotal: ${formatMoney(amount + bonus)}\n\n` + msg;
+                }
+                botMessage(msg);
+                window.db.flowState.step = 'DEPO_RECEIPT';
+            } else botMessage(t.err_amount);
             break;
 
-        case 'WAIT_KYC_SELFIE':
-            if (text.includes('.jpg') || lower.includes('listo')) {
-                botMessage("Scanning...");
-                openVisionModal();
-            } else { botMessage("📷 Ahora necesito una **Selfie** tuya."); }
+        case 'DEPO_RECEIPT':
+             botMessage("📎 Clip -> Photo");
+             break;
+
+        // --- WITHDRAW FLOW ---
+        case 'WITH_AMOUNT':
+            const wAmount = parseFloat(text.replace(/[^0-9.]/g, ''));
+            if(wAmount > 0 && wAmount <= currentUser.balance) {
+                window.db.flowState.tempData.wAmount = wAmount;
+                botMessage(t.with_pin);
+                window.db.flowState.step = 'WITH_PIN';
+            } else botMessage(t.err_bal);
             break;
 
-        case 'WAIT_KYC_EMAIL':
-            if (text.includes('@')) {
-                window.db.user.kycEmail = text;
-                botMessage(t.kyc_pin);
-                window.db.user.step = 'WAIT_KYC_PIN';
-            } else { botMessage("📧 Necesito un **Email** válido."); }
-            break;
-
-        case 'WAIT_KYC_PIN':
-            if (text.length === 4) {
-                botMessage(t.kyc_done);
-                // USE MOCK API
-                await window.api.registerPlayer(window.db.user.kycEmail, text);
-
+        case 'WITH_PIN':
+            if(text === currentUser.pin) {
+                botMessage(t.with_done);
+                await window.api.createWithdrawRequest(window.db.flowState.tempData.wAmount);
                 renderCRM();
-                resetToMenu(2000);
-            } else { botMessage("🔒 El PIN debe tener **4 dígitos**."); }
-            break;
-
-         case 'WAIT_WITHDRAW_AMOUNT':
-            window.db.user.withdrawAmount = text;
-            window.db.user.step = 'WAIT_WITHDRAW_CBU';
-            addBotBubble(t.withdraw_cbu);
-            break;
-
-        case 'WAIT_WITHDRAW_CBU':
-            addBotBubble(t.withdraw_done);
-            // USE MOCK API
-            await window.api.requestWithdraw("user@withdraw.com", 0);
-
-            renderCRM();
-            resetToMenu(2000);
+                resetToMenu(2500);
+            } else botMessage(t.err_pin);
             break;
     }
 }
 
+// --- ATTACHMENT HANDLER ---
+function handleAttachment(type) {
+    toggleDrawer();
+    const text = type === 'doc' ? '📄 ID.jpg' : (type === 'camera' ? '📷 Selfie.jpg' : '🖼️ Proof.jpg');
+    addBubble(text, 'user');
+    showTyping();
+
+    setTimeout(async () => {
+        hideTyping();
+        const step = window.db.flowState.step;
+        const r = window.db.config.region;
+        const t = regions[r].bot;
+
+        if (step === 'REG_KYC_DNI' && type === 'doc') {
+            botMessage("🔍 OCR Scan...");
+            openVisionModal();
+        }
+        else if (step === 'REG_KYC_SELFIE' && type === 'camera') {
+            botMessage("🔍 Liveness Check...");
+            openVisionModal();
+        }
+        else if (step === 'DEPO_RECEIPT' && type === 'gallery') {
+            botMessage(t.dep_wait);
+            setTimeout(async () => {
+                const amt = window.db.flowState.tempData.amount;
+                await window.api.createDepositRequest(amt);
+                botMessage(t.dep_done);
+                renderCRM();
+                resetToMenu(2000);
+            }, 2000);
+        }
+        else {
+            botMessage("⚠️ Error.");
+        }
+    }, 1000);
+}
+
+// --- VISION CORE UI ---
+function openVisionModal() {
+    const m = document.getElementById('vision-modal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+    const p = document.getElementById('vision-progress');
+    const b = document.getElementById('btn-vision-done');
+
+    p.style.width = '10%'; b.disabled = true; b.classList.add('opacity-50');
+    setTimeout(() => p.style.width = '100%', 3500);
+    setTimeout(() => { b.disabled = false; b.classList.remove('opacity-50'); b.innerText = "CONFIRM"; }, 4000);
+}
+
+function finishVision() {
+    document.getElementById('vision-modal').classList.replace('flex', 'hidden');
+    const step = window.db.flowState.step;
+    const r = window.db.config.region;
+
+    if(step === 'REG_KYC_DNI') {
+        botMessage(regions[r].bot.reg_selfie);
+        window.db.flowState.step = 'REG_KYC_SELFIE';
+    }
+    else if(step === 'REG_KYC_SELFIE') {
+        const msg = (r === 'es') ? "✅ **Identidad Validada**" : "✅ **Identity Verified**";
+        botMessage(msg);
+        if(currentUser) currentUser.status = 'VERIFIED';
+        renderCRM();
+        resetToMenu(1500);
+    }
+}
+
+// --- UI HELPERS ---
 function botMessage(text) {
-    let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-    html = html.replace(/\n/g, '<br>'); // Handle newlines
+    // Sanitize message content but allow specific formatting tags we insert
+    // Actually, bot messages are trusted internal strings, but user data inside them (like name) is sanitized before insertion.
+    let html = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
     addBotBubble(html);
 }
-
-function addBotBubble(html, isMenu = false) {
-    addBubble(html, 'bot', true);
-}
-
+function addBotBubble(html) { addBubble(html, 'bot', true); }
 function addBubble(content, type, isHtml = false) {
     const feed = document.getElementById('chat-feed');
     if(!feed) return;
     const div = document.createElement('div');
     div.className = `chat-bubble ${type === 'bot' ? 'bubble-in' : 'bubble-out'}`;
     if (isHtml) div.innerHTML = content; else div.innerText = content;
-    const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    div.innerHTML += `<div class="wa-time">${time} ${type === 'user' ? '<i class="fas fa-check-double text-blue-500"></i>' : ''}</div>`;
+    div.innerHTML += `<div class="wa-time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>`;
     feed.appendChild(div);
     feed.scrollTop = feed.scrollHeight;
-
-    // Save Chat
-    window.db.chat.push({ type, content, isHtml });
-    window.api.saveState();
 }
-
-function resetToMenu(delay = 1500) {
-    window.db.user.step = 'MENU';
-    setTimeout(showMenu, delay);
-}
-
-function toggleDrawer() {
-    const d = document.getElementById('drawer');
-    if(d) d.classList.toggle('open');
-}
-
-function handleAttachment(type) {
-    toggleDrawer();
-    const text = type === 'doc' ? '📄 ID.jpg' : (type === 'camera' ? '📷 Selfie.jpg' : '🖼️ Payment.jpg');
-    addBubble(text, 'user');
-
-    // Simulate Upload & Processing
-    showTyping();
-
-    setTimeout(() => {
-        hideTyping();
-
-        // INTELLIGENT ROUTING
-        if (window.db.user.step === 'WAIT_DNI' && type === 'doc') {
-            addBotBubble("🔍 **Vision Core:** Escaneando documento...");
-            setTimeout(() => openVisionModal(), 1000);
-        }
-        else if (window.db.user.step === 'WAIT_KYC_SELFIE' && type === 'camera') {
-            addBotBubble("👤 **Biometría:** Validando prueba de vida...");
-            setTimeout(() => openVisionModal(), 1000);
-        }
-        else {
-            processLogic(text);
-        }
-    }, 1000);
-}
-
 function showTyping() {
     const feed = document.getElementById('chat-feed');
-    if(!feed) return;
     const div = document.createElement('div');
     div.id = 'typing-anim';
     div.className = 'chat-bubble bubble-in typing-indicator';
-    div.innerHTML = '<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>';
+    div.innerHTML = '...';
     feed.appendChild(div);
     feed.scrollTop = feed.scrollHeight;
 }
-function hideTyping() { const el = document.getElementById('typing-anim'); if (el) el.remove(); }
-
-// --- VISION CORE UI ---
-function openVisionModal() {
-    const m = document.getElementById('vision-modal');
-    if(!m) return;
-    m.classList.remove('hidden'); m.classList.add('flex');
-
-    const progress = document.getElementById('vision-progress');
-    const status = document.getElementById('vision-status');
-    const btn = document.getElementById('btn-vision-done');
-    const score = document.getElementById('match-score');
-    const integrity = document.getElementById('score-dni');
-
-    progress.style.width = '5%';
-    status.innerText = "Iniciando OCR...";
-    btn.disabled = true;
-    btn.classList.add('opacity-50');
-
-    setTimeout(() => { progress.style.width = '45%'; status.innerText = "Extrayendo datos (OCR)..."; }, 1000);
-    setTimeout(() => { progress.style.width = '80%'; status.innerText = "Verificando Hologramas..."; }, 2500);
-    setTimeout(() => {
-        progress.style.width = '100%';
-        status.innerText = "Análisis Completado.";
-        score.innerText = "98.4%";
-        integrity.innerText = "VALID";
-        btn.disabled = false;
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-        btn.innerText = "CONFIRMAR DATOS";
-    }, 4000);
+function hideTyping() { const el = document.getElementById('typing-anim'); if(el) el.remove(); }
+function resetToMenu(delay = 1000) {
+    window.db.flowState.step = 'MENU';
+    setTimeout(showMenu, delay);
 }
+function toggleDrawer() { document.getElementById('drawer').classList.toggle('open'); }
 
-function finishVision() {
-    document.getElementById('vision-modal').classList.replace('flex', 'hidden');
-
-    if (window.db.user.step === 'WAIT_DNI') {
-        botMessage(regions[window.db.config.region].bot.kyc_selfie);
-        window.db.user.step = 'WAIT_KYC_SELFIE';
-    } else if (window.db.user.step === 'WAIT_KYC_SELFIE') {
-        botMessage(regions[window.db.config.region].bot.kyc_email);
-        window.db.user.step = 'WAIT_KYC_EMAIL';
-    }
-    window.api.saveState();
-}
-
-// --- CRM ACTIONS ---
-async function renderCRM() {
+// --- CRM & CHARTS ---
+function renderCRM() {
     const tb = document.getElementById('crm-body');
     if(!tb) return;
     tb.innerHTML = '';
 
     window.db.players.forEach(p => {
+        // Sanitize Outputs
+        const safeName = window.escapeHTML(p.firstName + " " + p.lastName);
+        const safeUser = window.escapeHTML(p.username);
+        const safeEmail = window.escapeHTML(p.email);
+
         let badge = '';
         let actions = '';
+        let statusText = p.status;
 
-        if(p.status === 'VERIFIED' || p.status === 'APROBADO') {
-            badge = `<span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-[10px] font-bold">VERIFIED</span>`;
-            actions = `<button onclick="crmAction(${p.id}, 'BAN')" class="text-xs text-red-400 hover:text-red-600 font-bold border border-red-200 px-2 py-1 rounded">BAN</button>`;
-        }
-        else if(p.status === 'PENDING_KYC') {
-            badge = `<span class="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 px-3 py-1 rounded-full text-[10px] font-bold">KYC PEND</span>`;
-            actions = `
-                <button onclick="crmAction(${p.id}, 'APPROVE_KYC')" class="text-xs bg-emerald-500 text-white px-2 py-1 rounded hover:bg-emerald-600 font-bold mr-1">OK</button>
-                <button onclick="crmAction(${p.id}, 'REJECT')" class="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 font-bold">X</button>
-            `;
-        }
-        else if(p.status === 'PENDING_DEPOSIT') {
-            badge = `<span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-bold">DEP PEND</span>`;
-            actions = `
-                <button onclick="crmAction(${p.id}, 'APPROVE_DEP')" class="text-xs bg-emerald-500 text-white px-2 py-1 rounded hover:bg-emerald-600 font-bold mr-1">$$</button>
-                <button onclick="crmAction(${p.id}, 'REJECT')" class="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 font-bold">X</button>
-            `;
-        }
-        else if(p.status === 'PENDING_WITHDRAWAL') {
-            badge = `<span class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-3 py-1 rounded-full text-[10px] font-bold animate-pulse">WITHDRAW</span>`;
-            actions = `
-                <button onclick="crmAction(${p.id}, 'APPROVE_WITHDRAW')" class="text-xs bg-emerald-500 text-white px-2 py-1 rounded hover:bg-emerald-600 font-bold mr-1">PAY</button>
-                <button onclick="crmAction(${p.id}, 'REJECT')" class="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 font-bold">X</button>
-            `;
+        if (p.pendingAction) {
+            if (p.pendingAction.type === 'DEPOSIT') {
+                statusText = `⏳ DEP: ${formatMoney(p.pendingAction.amount)}`;
+                badge = `<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-[10px] font-bold animate-pulse">PENDING</span>`;
+                actions = `
+                    <button onclick="crmAction(${p.id}, 'APPROVE_DEP')" class="bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold mr-1">OK</button>
+                    <button onclick="crmAction(${p.id}, 'REJECT')" class="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">X</button>
+                `;
+            } else if (p.pendingAction.type === 'WITHDRAW') {
+                statusText = `⏳ RET: ${formatMoney(p.pendingAction.amount)}`;
+                badge = `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-[10px] font-bold animate-pulse">REVIEW</span>`;
+                actions = `
+                    <button onclick="crmAction(${p.id}, 'APPROVE_WITH')" class="bg-emerald-500 text-white px-2 py-1 rounded text-xs font-bold mr-1">PAY</button>
+                    <button onclick="crmAction(${p.id}, 'REJECT')" class="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">X</button>
+                `;
+            }
+        } else {
+            badge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold">${p.status}</span>`;
         }
 
         const tr = document.createElement('tr');
-        tr.className = "border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition group";
+        tr.className = "border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50";
         tr.innerHTML = `
-            <td class="p-6 font-bold text-slate-800 dark:text-white text-sm">${p.name}<br><span class="text-[10px] font-normal text-slate-400">${p.id}</span></td>
-            <td class="p-6 text-xs text-slate-600 dark:text-slate-300">${p.email}</td>
-            <td class="p-6 text-center">${badge}</td>
-            <td class="p-6 text-right font-black text-slate-800 dark:text-white text-lg">${formatMoney(p.balance)}</td>
+            <td class="p-6 font-bold text-slate-800 dark:text-white text-sm">
+                ${safeName}<br>
+                <span class="text-[10px] text-slate-400">@${safeUser || 'user'}</span>
+            </td>
+            <td class="p-6 text-xs text-slate-500">${safeEmail}<br>${p.phone}</td>
+            <td class="p-6 text-center text-xs font-bold text-slate-500">${statusText}<br>${badge}</td>
+            <td class="p-6 text-right font-black text-slate-900 dark:text-white">${formatMoney(p.balance)}</td>
             <td class="p-6 text-right">${actions}</td>
         `;
         tb.appendChild(tr);
@@ -448,46 +462,29 @@ async function renderCRM() {
 }
 
 async function crmAction(id, type) {
-    const p = window.db.players.find(x => x.id === id);
-    if(!p) return;
-
-    if(type === 'APPROVE_KYC') {
-        await window.api.updatePlayerStatus(id, 'VERIFIED');
-        addBotBubble(`✅ Tu cuenta ha sido validada, ${p.name}.`);
-        log(`KYC Aprobado para ${p.name}`, 'KYC');
-    }
-    if(type === 'APPROVE_DEP') {
-        await window.api.updatePlayerStatus(id, 'VERIFIED', { balanceChange: 5000 });
-        addBotBubble(`💰 Se acreditaron ${formatMoney(5000)} a tu cuenta.`);
-        log(`Depósito aprobado: ${p.name}`, 'FINANCE');
-    }
-    if(type === 'APPROVE_WITHDRAW') {
-        await window.api.updatePlayerStatus(id, 'VERIFIED');
-        addBotBubble(`💸 Retiro de ${formatMoney(p.history.out)} procesado con éxito.`);
-        log(`Retiro enviado a ${p.name}`, 'FINANCE');
-    }
-    if(type === 'REJECT') {
-        await window.api.updatePlayerStatus(id, 'REJECTED');
-        addBotBubble(`❌ Solicitud rechazada. Contactá soporte.`);
-        log(`Solicitud rechazada para ${p.name}`, 'ALERT');
-    }
-    if(type === 'BAN') {
-        await window.api.deletePlayer(id);
-        log(`Usuario ${p.name} eliminado`, 'ALERT');
+    if (type === 'APPROVE_DEP') {
+        await window.api.approveAction(id);
+        log(`Depósito Acreditado: User #${id}`, 'FINANCE');
+    } else if (type === 'APPROVE_WITH') {
+        await window.api.approveAction(id);
+        log(`Retiro Pagado: User #${id}`, 'FINANCE');
+    } else if (type === 'REJECT') {
+        await window.api.rejectAction(id);
+        log(`Acción Rechazada: User #${id}`, 'ALERT');
     }
     renderCRM();
+    updateFinancials();
 }
 
 function log(msg, type) {
     const box = document.getElementById('audit-log');
     if(!box) return;
     const p = document.createElement('div');
-    let color = "text-slate-300";
+    let color = "text-slate-400";
     if(type === 'FINANCE') color = "text-emerald-400";
-    if(type === 'KYC') color = "text-blue-400";
     if(type === 'ALERT') color = "text-red-400";
-    p.className = `text-[10px] border-l-2 pl-2 border-slate-600 ${color} font-mono animate-fade-in`;
-    p.innerHTML = `<span class="opacity-50 mr-2">${new Date().toLocaleTimeString()}</span> ${msg}`;
+    p.className = `text-[10px] border-l-2 pl-2 border-slate-600 ${color} font-mono mb-1`;
+    p.innerText = msg;
     box.prepend(p);
 }
 
@@ -498,9 +495,6 @@ function initCharts() {
     if (chartInstances.c1) chartInstances.c1.destroy();
     if (chartInstances.c2) chartInstances.c2.destroy();
 
-    const color = window.db.config.theme === 'dark' ? '#94a3b8' : '#475569';
-
-    // Financial Chart
     chartInstances.c1 = new Chart(ctx1, {
         type: 'bar',
         data: {
@@ -518,7 +512,6 @@ function initCharts() {
         }
     });
 
-    // Pie Chart (New)
     chartInstances.c2 = new Chart(ctx2, {
         type: 'doughnut',
         data: {
@@ -539,80 +532,19 @@ function initCharts() {
 }
 
 async function downloadPDF() {
-    // Generate PDF with jsPDF-AutoTable
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const region = window.db.config.region.toUpperCase();
-    const date = new Date().toLocaleDateString();
-
-    // HEADER
-    doc.setFontSize(18);
-    doc.setTextColor(40, 40, 40);
     doc.text(`INTEGRALTEK CASINO REPORT (${region})`, 15, 20);
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated: ${date}`, 15, 26);
 
-    // SUMMARY
-    doc.setDrawColor(200);
-    doc.line(15, 30, 195, 30);
-
-    const kpiY = 40;
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text("FINANCIAL SUMMARY", 15, kpiY);
-
-    // Retrieve vals for PDF
-    const vals = {
-        es: { in: 2450000, out: 850000, ggr: 1550000 },
-        us: { in: 125000, out: 42000, ggr: 83000 },
-        br: { in: 520000, out: 180000, ggr: 340000 }
-    }[window.db.config.region];
-
-    doc.setFontSize(10);
-    doc.text(`Total Cash-In: ${formatMoney(vals.in)}`, 15, kpiY + 8);
-    doc.text(`Total Cash-Out: ${formatMoney(vals.out)}`, 15, kpiY + 14);
-    doc.text(`Net Profit (GGR): ${formatMoney(vals.ggr)}`, 15, kpiY + 20);
-    doc.text(`Active Players: ${window.db.players.length}`, 100, kpiY + 8);
-
-    // PLAYERS TABLE
-    doc.text("PLAYER ACTIVITY LOG", 15, kpiY + 35);
-
-    const tableBody = window.db.players.map(p => [
-        p.id,
-        p.name,
-        p.email,
-        p.status,
-        formatMoney(p.balance)
-    ]);
-
-    // Ensure AutoTable is available
-    if (doc.autoTable) {
-        doc.autoTable({
-            startY: kpiY + 40,
-            head: [['ID', 'Name', 'Email', 'Status', 'Balance']],
-            body: tableBody,
-            theme: 'grid',
-            headStyles: { fillColor: [15, 23, 42] },
-            styles: { fontSize: 8 }
-        });
-    } else {
-        doc.text("Error: AutoTable plugin not loaded.", 15, kpiY + 50);
-    }
-
-    // FOOTER
-    const pageCount = doc.internal.getNumberOfPages();
-    for(let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text('Integraltek AI System v7.3 - Confidential', 105, 290, null, null, "center");
-    }
-
-    doc.save(`Integraltek_Report_${region}_${Date.now()}.pdf`);
+    let y = 40;
+    window.db.players.forEach(p => {
+        doc.text(`${p.username} - Balance: ${formatMoney(p.balance)}`, 15, y);
+        y += 10;
+    });
+    doc.save("Report.pdf");
 }
 
-// Global View Switcher
 window.setView = function(view) {
     ['agent', 'crm', 'dashboard'].forEach(v => {
         const el = document.getElementById('view-'+v);
